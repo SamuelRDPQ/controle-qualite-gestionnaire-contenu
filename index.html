@@ -583,13 +583,13 @@ async function loadRecords() {
 }
 function expandImport(imp, taskGid) {
   return imp.recs.map(x => {
-    const [type, clientId, clientName, memberId, memberName, controllerName, date, res, status, oldScore, comment, src] = x;
+    const [type, clientId, clientName, memberId, memberName, controllerName, date, res, status, oldScore, comment, src, oldNotes] = x;
     const keys = imp.keys[type] || [];
     const results = {}, labels = {};
     keys.forEach(([id, label], i) => { const c = res[i]; if (!c || c === "-") return; results[id] = c === "e" ? "err" : c === "n" ? "na" : "ok"; labels[id] = label; });
     const sc = scoreOf(type, results);
     const crit = Object.keys(results).filter(id => results[id] === "err" && (S.cfg.checklists[type] || []).find(p => p.id === id)?.critical);
-    return { v: 1, imported: true, status, oldScore, type, clientId, clientName, link: "", memberId, memberName, memberGid: "", controllerGid: "", controllerName, date, results, notes: {}, labels, critical: crit, score: sc.earned, total: sc.possible, comment: comment || "", createdAt: date, gid: "imp-" + src, url: "https://app.asana.com/0/0/" + src + "/f", importTask: taskGid };
+    return { v: 1, imported: true, status, oldScore, type, clientId, clientName, link: "", memberId, memberName, memberGid: "", controllerGid: "", controllerName, date, results, notes: oldNotes || {}, labels, critical: crit, score: sc.earned, total: sc.possible, comment: comment || "", createdAt: date, gid: "imp-" + src, url: "https://app.asana.com/0/0/" + src + "/f", importTask: taskGid };
   });
 }
 function recordName(r) {
@@ -1105,7 +1105,7 @@ function openRecord(r) {
   const ord = { err: 0, na: 1, ok: 2 };
   ov.innerHTML = `<div class="drawer"><div class="row" style="justify-content:space-between"><span class="tag">${esc(S.cfg.types[r.type]?.label || r.type)}${r.imported ? " · ancien système" : ""}</span><button class="iconb" id="x" aria-label="Fermer">✕</button></div>
   <div class="ring" style="margin-top:14px">${ring(r.score, r.total, 84)}<div><h2>${esc(r.clientName)}</h2><div style="color:var(--mute)">${esc(r.clientId)} · <span class="score ${b.cls}">${pct(r.score, r.total)} % · ${esc(b.label)}</span></div></div></div>
-  ${r.imported ? `<div class="msg i">Contrôle importé de l'ancien système (sous-tâches Asana). ${r.status === "verified" ? `Vérifié : correspond à la note de ${r.oldScore}/22 inscrite à l'époque.` : "Aucune note inscrite à l'époque : résultat reconstitué à partir des sous-tâches cochées."} Lecture seule.</div>` : ""}
+  ${r.imported ? `<div class="msg i">Contrôle importé de l'ancien système. ${r.status === "verified" ? `Vérifié : correspond à la note de ${r.oldScore}/22 inscrite à l'époque.` : r.status === "mismatch" ? `Attention : la note inscrite à l'époque était ${r.oldScore}/22, ce qui ne correspond pas aux erreurs commentées.` : "Aucune note inscrite à l'époque : erreurs reconstituées à partir des commentaires."} Lecture seule.</div>` : ""}
   <dl class="kv"><dt>Réalisée par</dt><dd>${esc(r.memberName)}</dd><dt>Contrôle fait par</dt><dd>${esc(r.controllerName || "-")}</dd><dt>Date</dt><dd>${esc(fmtDate(r.date))}</dd>
   ${r.link ? `<dt>Fiche</dt><dd>${/^https:\/\//.test(r.link) ? `<a href="${esc(r.link)}" target="_blank" rel="noopener">${esc(r.link)}</a>` : esc(r.link)}</dd>` : ""}
   ${r.comment ? `<dt>Commentaire</dt><dd>${esc(r.comment)}</dd>` : ""}</dl>
@@ -1183,7 +1183,7 @@ async function renderCfg(m) {
   </div>
 
   <div class="card pad cfgsec" id="importBox"><h2>Ancien historique</h2>
-    <div class="sub">Reconstitue les contrôles de l'ancien système (sous-tâches cochées dans le projet « Contrôle de qualité - Gestionnaire de contenu »). La lecture ne modifie rien dans Asana.${TEST_MODE ? " En mode test, le résultat reste dans ce navigateur." : ""}</div>
+    <div class="sub">Reconstitue les contrôles de l'ancien système (projet « Contrôle de qualité - Gestionnaire de contenu ») : un point compte comme erreur s'il n'est pas coché et qu'il porte un commentaire. Les commentaires deviennent les notes d'erreur. La lecture ne modifie rien dans Asana.${TEST_MODE ? " En mode test, le résultat reste dans ce navigateur." : ""}</div>
     ${nOld ? `<div class="msg i" style="margin-bottom:12px">${nOld} anciens contrôles sont déjà dans l'outil. Relancer l'import les remplace.</div>` : ""}
     ${TEST_MODE ? `<div class="field" style="max-width:520px"><label>Ton jeton Asana (lecture seulement, n'est pas conservé)</label><input class="inp mono" type="password" id="imp_tok" placeholder="2/1202…" autocomplete="off"></div>` : ""}
     <button class="btn" id="impScan">Analyser l'ancien historique</button>
@@ -1269,22 +1269,32 @@ async function scanOld(m) {
         const pts = (await readApi(tok, `/tasks/${ev.gid}/subtasks?opt_fields=name,completed`)).data || [];
         if (pts.length < 5) { skipped.push([t.name, "checklist incomplète"]); return; }
         const completed = pts.filter(p => p.completed).length;
-        if (completed === 0) { skipped.push([t.name, "aucun point coché (contrôle jamais fait)"]); return; }
+        // Ancien système : un point est une erreur s'il n'est pas coché ET qu'un commentaire décrit l'erreur.
+        const notesById = {};
+        for (const p of pts.filter(p => !p.completed)) {
+          const st = (await readApi(tok, `/tasks/${p.gid}/stories?opt_fields=resource_subtype,text&limit=30`)).data || [];
+          const txt = st.filter(x => x.resource_subtype === "comment_added").map(x => String(x.text || "").replace(/https:\/\/app\.asana\.com\/\S+/g, "").replace(/°/g, "").replace(/\s*\n\s*/g, " ").trim()).filter(Boolean);
+          if (txt.length) notesById[p.gid] = txt.join(" / ").slice(0, 400);
+          else if (st.some(x => x.resource_subtype === "comment_added")) notesById[p.gid] = "(capture d'écran)";
+        }
+        const nErr = Object.keys(notesById).length;
+        if (completed === 0 && nErr === 0) { skipped.push([t.name, "aucun point évalué (contrôle jamais fait)"]); return; }
         const mem = mapOldMember(cf["optimisation realisee par"]);
         if (!mem) { skipped.push([t.name, "membre non indiqué"]); return; }
         const type = /r[ée]optimisation/i.test(t.name) ? "reopt" : "opti";
-        let res = {};
+        let res = {}, notes = {};
         for (const p of pts) {
           const id = mapOldPoint(type, p.name);
           if (keyIdx[type][id] === undefined) { keyIdx[type][id] = keys[type].length; keys[type].push([id, (S.cfg.checklists[type].find(x => x.id === id)?.label) || String(p.name).replace("⚠️", "").trim()]); }
-          res[id] = p.completed ? "o" : "e";
+          res[id] = notesById[p.gid] ? "e" : "o";
+          if (notesById[p.gid]) notes[id] = notesById[p.gid];
         }
         const sc = cf["score sur 22"] != null && cf["score sur 22"] !== "" ? +cf["score sur 22"] : null;
-        const status = sc == null ? "noscore" : sc === completed ? "verified" : "mismatch";
+        const status = sc == null ? "noscore" : sc === pts.length - nErr ? "verified" : "mismatch";
         const nm = String(t.name).split(":").slice(1).join(":").trim() || t.name;
         const idm = nm.match(/^(\d{3,6})\s*-?\s*/);
         const date = (cf["date que le controle a ete effectuer"] || t.created_at || "").slice(0, 10);
-        recs.push({ type, clientId: idm ? idm[1] : "", clientName: (idm ? nm.slice(idm[0].length) : nm).replace(/\s+COMMERCIAL\s*$/i, "").trim(), memberId: mem.id, memberName: mem.name, controllerName: cf["controle fait par"] || "", date, res, status, oldScore: sc, comment: cf["note de gougoux"] || "", src: t.gid });
+        recs.push({ type, clientId: idm ? idm[1] : "", clientName: (idm ? nm.slice(idm[0].length) : nm).replace(/\s+COMMERCIAL\s*$/i, "").trim(), memberId: mem.id, memberName: mem.name, controllerName: cf["controle fait par"] || "", date, res, status, oldScore: sc, comment: cf["note de gougoux"] || "", src: t.gid, notes });
       } catch (e) { if (e.status === 401) throw e; skipped.push([t.name, "erreur de lecture"]); }
       finally { done++; if (done % 5 === 0 || done === ctrl.length) say(`Analyse des anciens contrôles : ${done} / ${ctrl.length}`); }
     };
@@ -1299,7 +1309,7 @@ async function scanOld(m) {
 }
 function packImport(recs) {
   const keys = IMPORT.keys;
-  return { v: 1, keys, recs: recs.map(r => [r.type, r.clientId, r.clientName, r.memberId, r.memberName, r.controllerName, r.date, keys[r.type].map(([id]) => r.res[id] || "-").join(""), r.status, r.oldScore, r.comment, r.src]) };
+  return { v: 1, keys, recs: recs.map(r => [r.type, r.clientId, r.clientName, r.memberId, r.memberName, r.controllerName, r.date, keys[r.type].map(([id]) => r.res[id] || "-").join(""), r.status, r.oldScore, r.comment, r.src, r.notes || {}]) };
 }
 function renderImportSummary(m) {
   const I = IMPORT; const out = $("#impOut");
@@ -1314,13 +1324,13 @@ function renderImportSummary(m) {
   out.innerHTML = `<div style="margin-top:16px">
     <div class="kpis" style="grid-template-columns:repeat(4,1fr)">
       <div class="card kpi"><div class="l">Anciens contrôles</div><div class="v">${I.found}</div></div>
-      <div class="card kpi"><div class="l">Vérifiés</div><div class="v" style="color:var(--ok)">${cnt("verified")}</div><div class="s">cases cochées = note inscrite</div></div>
-      <div class="card kpi"><div class="l">Sans note inscrite</div><div class="v">${cnt("noscore")}</div><div class="s">reconstitués des cases</div></div>
-      <div class="card kpi"><div class="l">Écartés</div><div class="v" style="color:var(--mute)">${I.skipped.length + cnt("mismatch")}</div><div class="s">${cnt("mismatch")} note ≠ cases · ${I.skipped.length} incomplets</div></div>
+      <div class="card kpi"><div class="l">Vérifiés</div><div class="v" style="color:var(--ok)">${cnt("verified")}</div><div class="s">erreurs commentées = note inscrite</div></div>
+      <div class="card kpi"><div class="l">Sans note inscrite</div><div class="v">${cnt("noscore")}</div><div class="s">reconstitués des commentaires</div></div>
+      <div class="card kpi"><div class="l">Écartés</div><div class="v" style="color:var(--mute)">${I.skipped.length + cnt("mismatch")}</div><div class="s">${cnt("mismatch")} note ≠ erreurs · ${I.skipped.length} incomplets</div></div>
     </div>
     <label class="check"><input type="checkbox" id="imp_v" checked> Inclure les ${cnt("verified")} contrôles vérifiés</label>
-    <label class="check"><input type="checkbox" id="imp_n" checked> Inclure les ${cnt("noscore")} contrôles sans note inscrite (fiables si la personne cochait bien les cases)</label>
-    <label class="check"><input type="checkbox" id="imp_m"> Inclure les ${cnt("mismatch")} contrôles où la note inscrite ne correspond pas aux cases cochées</label>
+    <label class="check"><input type="checkbox" id="imp_n" checked> Inclure les ${cnt("noscore")} contrôles sans note inscrite (erreurs reconstituées à partir des commentaires)</label>
+    <label class="check"><input type="checkbox" id="imp_m"> Inclure les ${cnt("mismatch")} contrôles où la note inscrite ne correspond pas aux erreurs commentées</label>
     <div id="impPrev"></div>
     ${I.skipped.length ? `<details style="margin-top:10px;font-size:13px;color:var(--mute)"><summary>Voir les ${I.skipped.length} contrôles ignorés</summary>${I.skipped.map(([n, why]) => `<div>${esc(n)} : ${esc(why)}</div>`).join("")}</details>` : ""}
     <button class="btn" id="impSave" style="margin-top:14px">Ajouter à l'outil</button>
