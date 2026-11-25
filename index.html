@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contrôle de qualité · DPC RDPQ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F3F0E8; --card:#FFFDF8; --ink:#13203A; --ink2:#2B3A57; --mute:#6E7689; --line:#E2DCCD;
+  --ok:#1F8A5B; --okbg:#E3F3EA; --err:#D9472B; --errbg:#FBE7E1; --warn:#C98A12; --warnbg:#FBF0D6;
+  --na:#8A8F9C; --nabg:#ECEBE6; --accent:#2F5BEA; --accentbg:#E6ECFD;
+  --r:14px; --shadow:0 1px 0 rgba(19,32,58,.04),0 8px 24px -12px rgba(19,32,58,.18);
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.45 Inter,system-ui,sans-serif}
+h1,h2,h3,.disp{font-family:"Bricolage Grotesque",Inter,sans-serif;letter-spacing:-.01em;margin:0}
+.mono{font-family:"IBM Plex Mono",monospace}
+button{font:inherit;cursor:pointer}
+input,select,textarea{font:inherit;color:var(--ink)}
+a{color:var(--accent)}
+.hide{display:none!important}
+
+/* ---------- login ---------- */
+#login{min-height:100vh;display:grid;grid-template-columns:1.1fr 1fr}
+#login .art{background:var(--ink);color:#F3F0E8;padding:56px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
+#login .art h1{font-size:64px;line-height:.95;font-weight:800;max-width:520px}
+#login .art h1 em{font-style:normal;color:#9DB5FF}
+#login .art p{max-width:430px;color:#B9C2D6}
+.stamp{position:absolute;right:-60px;top:80px;width:340px;height:340px;border:2px dashed rgba(157,181,255,.35);border-radius:50%;display:grid;place-items:center;transform:rotate(-12deg)}
+.stamp span{font-family:"Bricolage Grotesque";font-weight:800;font-size:110px;color:rgba(157,181,255,.18)}
+#login .form{padding:56px;display:flex;flex-direction:column;justify-content:center;max-width:520px}
+#login .form h2{font-size:28px;margin-bottom:6px}
+.steps{counter-reset:s;list-style:none;padding:0;margin:18px 0 22px}
+.steps li{counter-increment:s;position:relative;padding:8px 0 8px 38px;color:var(--ink2)}
+.steps li::before{content:counter(s);position:absolute;left:0;top:6px;width:26px;height:26px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;font-size:13px;font-weight:600}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.field label{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--mute)}
+.inp{border:1.5px solid var(--line);background:#fff;border-radius:10px;padding:10px 12px;outline:none;width:100%}
+.inp:focus{border-color:var(--ink)}
+textarea.inp{resize:vertical;min-height:60px}
+.btn{border:0;border-radius:10px;padding:11px 18px;font-weight:600;background:var(--ink);color:#fff;display:inline-flex;align-items:center;gap:8px;justify-content:center}
+.btn:hover{background:var(--ink2)}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn.ghost:hover{border-color:var(--ink)}
+.btn.danger{background:var(--err)}
+.btn.sm{padding:7px 12px;font-size:13px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.msg{font-size:14px;padding:10px 12px;border-radius:10px;margin-top:10px}
+.msg.e{background:var(--errbg);color:#8A2410}
+.msg.i{background:var(--accentbg);color:#1C3BA8}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:14px;color:var(--ink2);margin:4px 0}
+.check input{margin-top:3px;accent-color:var(--ink)}
+
+/* ---------- shell ---------- */
+#app{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+nav.side{background:var(--ink);color:#C9D1E3;padding:22px 14px;display:flex;flex-direction:column;gap:4px;position:sticky;top:0;height:100vh}
+.brand{padding:4px 10px 22px;color:#fff}
+.brand b{font-family:"Bricolage Grotesque";font-size:22px;font-weight:800;display:block;line-height:1}
+.brand small{color:#8E9AB5;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.navbtn{background:none;border:0;color:inherit;text-align:left;padding:10px 12px;border-radius:10px;display:flex;align-items:center;gap:10px;font-weight:500}
+.navbtn:hover{background:rgba(255,255,255,.06);color:#fff}
+.navbtn.on{background:#F3F0E8;color:var(--ink)}
+.navbtn .ic{width:20px;text-align:center}
+.side .me{margin-top:auto;padding:12px;border-top:1px solid rgba(255,255,255,.1);font-size:13px}
+.side .me b{color:#fff;display:block}
+.role{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;background:#9DB5FF;color:var(--ink);margin-top:4px}
+.week{margin:14px 4px 0;padding:12px;border-radius:12px;background:rgba(255,255,255,.06);font-size:12px}
+.week .bar{height:6px;border-radius:9px;background:rgba(255,255,255,.12);margin-top:8px;overflow:hidden}
+.week .bar i{display:block;height:100%;background:#9DB5FF}
+main{padding:30px 38px 80px;min-width:0}
+.head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:22px;flex-wrap:wrap}
+.head h1{font-size:34px;font-weight:800}
+.head p{margin:4px 0 0;color:var(--mute)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+.pad{padding:20px 22px}
+
+/* ---------- control form ---------- */
+.formgrid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:22px;align-items:start}
+.meta{display:grid;grid-template-columns:repeat(4,1fr);gap:12px 14px}
+.meta .field{margin:0}
+.meta .w2{grid-column:span 2}
+.typesw{display:inline-flex;background:var(--nabg);border-radius:12px;padding:4px}
+.typesw button{border:0;background:none;padding:8px 16px;border-radius:9px;font-weight:600;color:var(--mute)}
+.typesw button.on{background:var(--ink);color:#fff}
+.dup{font-size:13px;color:#8A5A00;background:var(--warnbg);padding:8px 12px;border-radius:10px;margin-top:12px}
+.points{margin-top:18px}
+.pt{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:12px;align-items:start;padding:12px 18px;border-top:1px solid var(--line);transition:background .15s}
+.pt:first-child{border-top:0}
+.pt.err{background:linear-gradient(90deg,var(--errbg),transparent 70%)}
+.pt.na{opacity:.6}
+.pt .n{font-family:"IBM Plex Mono";font-size:12px;color:var(--mute);padding-top:7px}
+.pt .lab{font-weight:600;padding-top:5px}
+.pt .lab .crit{font-size:11px;font-weight:600;color:var(--warn);background:var(--warnbg);padding:1px 7px;border-radius:99px;margin-left:6px;vertical-align:1px}
+.pt .desc{font-size:13px;color:var(--mute);margin-top:2px}
+.pt textarea{margin-top:8px;min-height:44px;border-color:#F0B7A8}
+.seg{display:inline-flex;border:1.5px solid var(--line);border-radius:10px;overflow:hidden;background:#fff}
+.seg button{border:0;background:none;padding:7px 11px;font-size:13px;font-weight:600;color:var(--mute);border-left:1.5px solid var(--line)}
+.seg button:first-child{border-left:0}
+.seg button.ok.on{background:var(--ok);color:#fff}
+.seg button.err.on{background:var(--err);color:#fff}
+.seg button.na.on{background:var(--na);color:#fff}
+.verdict{position:sticky;top:24px}
+.ring{display:flex;align-items:center;gap:18px}
+.ring svg{flex:none}
+.ring .big{font-family:"Bricolage Grotesque";font-weight:800;font-size:44px;line-height:1}
+.ring .big small{font-size:20px;color:var(--mute);font-weight:600}
+.dec{list-style:none;padding:0;margin:16px 0}
+.dec li{display:flex;gap:10px;padding:9px 0;border-top:1px dashed var(--line);font-size:14px}
+.dec li:first-child{border-top:0}
+.dot{width:10px;height:10px;border-radius:50%;margin-top:6px;flex:none}
+.opts{background:var(--paper);border-radius:12px;padding:12px 14px;margin:12px 0}
+
+/* ---------- dashboard ---------- */
+.filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+.chips{display:inline-flex;gap:6px;flex-wrap:wrap}
+.chip{border:1.5px solid var(--line);background:var(--card);border-radius:99px;padding:6px 13px;font-size:13px;font-weight:600;color:var(--ink2)}
+.chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
+select.inp.sm,input.inp.sm{padding:6px 10px;font-size:13px;width:auto}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+.kpi{padding:16px 18px}
+.kpi .v{font-family:"Bricolage Grotesque";font-weight:800;font-size:34px;line-height:1.05}
+.kpi .l{font-size:12px;color:var(--mute);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.kpi .s{font-size:12px;color:var(--mute);margin-top:2px}
+.grid2{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:18px;margin-bottom:18px}
+.sect-t{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
+.sect-t h2{font-size:19px;font-weight:700}
+.sect-t span{font-size:12px;color:var(--mute)}
+.rank{display:flex;flex-direction:column}
+.rk{display:grid;grid-template-columns:26px minmax(0,1fr) 64px;gap:10px;align-items:center;padding:9px 6px;border-radius:10px;cursor:pointer;border:0;background:none;text-align:left;width:100%}
+.rk:hover{background:var(--paper)}
+.rk .i{font-family:"IBM Plex Mono";font-size:12px;color:var(--mute)}
+.rk .nm{font-weight:600;font-size:14px;display:flex;justify-content:space-between;gap:8px}
+.rk .nm em{font-style:normal;font-weight:500;color:var(--mute);font-size:12px;white-space:nowrap}
+.rk .track{height:8px;border-radius:9px;background:var(--nabg);margin-top:6px;overflow:hidden}
+.rk .track i{display:block;height:100%;border-radius:9px;background:var(--err)}
+.rk .ct{text-align:right;font-family:"Bricolage Grotesque";font-weight:800;font-size:22px}
+.rk .who{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px}
+.tag{font-size:11px;padding:1px 7px;border-radius:99px;background:var(--paper);color:var(--ink2);border:1px solid var(--line)}
+.alert{display:flex;gap:12px;padding:11px 0;border-top:1px solid var(--line);font-size:14px}
+.alert:first-child{border-top:0}
+.pill{font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;white-space:nowrap;height:fit-content}
+.pill.w{background:var(--errbg);color:#9B2A13}
+.pill.v{background:var(--warnbg);color:#7A5200}
+.pill.b{background:var(--accentbg);color:#1C3BA8}
+table.t{width:100%;border-collapse:collapse;font-size:14px}
+table.t th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute);font-weight:600;padding:10px 12px;border-bottom:1.5px solid var(--line)}
+table.t td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+table.t tr.click{cursor:pointer}
+table.t tr.click:hover td{background:var(--paper)}
+.score{display:inline-block;font-family:"IBM Plex Mono";font-weight:600;font-size:13px;padding:3px 9px;border-radius:8px}
+.s-hi{background:var(--okbg);color:#0F5C3A}.s-mid{background:var(--warnbg);color:#7A5200}.s-lo{background:var(--errbg);color:#9B2A13}
+.heat{overflow:auto}
+.heat table{border-collapse:separate;border-spacing:3px;font-size:12px}
+.heat th{font-weight:600;color:var(--mute);padding:4px 6px;text-align:left;white-space:nowrap}
+.heat th.v{writing-mode:vertical-rl;transform:rotate(180deg);height:120px;vertical-align:bottom;text-align:left}
+.heat td.c{width:34px;height:30px;text-align:center;border-radius:6px;font-family:"IBM Plex Mono";font-weight:600}
+.empty{padding:50px 20px;text-align:center;color:var(--mute)}
+.empty b{display:block;font-family:"Bricolage Grotesque";font-size:22px;color:var(--ink);margin-bottom:6px}
+
+/* ---------- modal / drawer ---------- */
+.ov{position:fixed;inset:0;background:rgba(19,32,58,.42);display:flex;justify-content:flex-end;z-index:50}
+.drawer{width:min(620px,100%);height:100%;background:var(--card);overflow:auto;padding:26px 28px;animation:slide .2s ease-out}
+@keyframes slide{from{transform:translateX(30px);opacity:0}}
+.drawer h2{font-size:24px;margin-bottom:4px}
+.kv{display:grid;grid-template-columns:140px 1fr;gap:6px 12px;font-size:14px;margin:14px 0}
+.kv dt{color:var(--mute)}
+.kv dd{margin:0}
+.res{display:flex;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:14px}
+.res .st{width:62px;flex:none;font-size:11px;font-weight:700;text-align:center;padding:3px 0;border-radius:6px;height:fit-content}
+.st.ok{background:var(--okbg);color:#0F5C3A}.st.err{background:var(--errbg);color:#9B2A13}.st.na{background:var(--nabg);color:#555}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 18px;border-radius:12px;z-index:60;box-shadow:var(--shadow);font-weight:500}
+.spin{width:18px;height:18px;border:2.5px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite}
+.spin.d{border-color:var(--line);border-top-color:var(--ink)}
+@keyframes sp{to{transform:rotate(360deg)}}
+.loading{display:flex;gap:12px;align-items:center;color:var(--mute);padding:40px}
+
+/* ---------- config ---------- */
+.cfg-pt{display:grid;grid-template-columns:28px 1.1fr 2fr auto;gap:10px;align-items:start;padding:10px 0;border-top:1px solid var(--line)}
+.cfg-pt:first-child{border-top:0}
+.cfg-pt .ctrl{display:flex;flex-direction:column;gap:6px;font-size:13px}
+.cfg-pt.off{opacity:.45}
+.iconb{border:1.5px solid var(--line);background:#fff;border-radius:8px;width:30px;height:30px;display:inline-grid;place-items:center;font-size:13px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.cfgsec{margin-bottom:18px}
+.cfgsec h2{font-size:19px;margin-bottom:4px}
+.cfgsec .sub{color:var(--mute);font-size:13px;margin-bottom:14px}
+
+.trend svg text{font-family:"IBM Plex Mono";font-size:10px;fill:var(--mute)}
+
+@media (max-width:1100px){
+  .formgrid,.grid2{grid-template-columns:1fr}
+  .verdict{position:static}
+  .kpis{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:820px){
+  #app{grid-template-columns:1fr}
+  nav.side{position:static;height:auto;flex-direction:row;flex-wrap:wrap}
+  .side .me,.week{display:none}
+  #login{grid-template-columns:1fr}
+  #login .art{display:none}
+  main{padding:20px}
+  .meta{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ================= LOGIN ================= -->
+<section id="login" class="hide">
+  <div class="art">
+    <div class="stamp"><span>QC</span></div>
+    <div>
+      <div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#8E9AB5;margin-bottom:22px">RDPQ · Département Performance Client</div>
+      <h1>Contrôle de qualité, <em>sans les 22 sous-tâches.</em></h1>
+    </div>
+    <p>Un contrôle se fait en une seule page. Les résultats sont enregistrés dans Asana, les corrections sont créées et assignées automatiquement, et les erreurs qui reviennent ressortent toutes seules.</p>
+  </div>
+  <div class="form">
+    <h2>Connexion</h2>
+    <div style="color:var(--mute)">Tu te connectes avec ton compte Asana, une seule fois par ordinateur.</div>
+    <ol class="steps">
+      <li>Ouvre la <a href="https://app.asana.com/0/my-apps" target="_blank" rel="noopener">console développeur Asana</a> (connectée à ton compte RDPQ).</li>
+      <li>Clique <b>Créer un jeton</b>, nomme-le « Contrôle qualité », puis copie le jeton.</li>
+      <li>Colle-le ci-dessous. Garde-le pour toi, c'est l'équivalent de ton mot de passe Asana.</li>
+    </ol>
+    <div class="field">
+      <label for="pat">Jeton d'accès personnel Asana</label>
+      <input id="pat" class="inp mono" type="password" placeholder="2/1202…" autocomplete="off">
+    </div>
+    <label class="check"><input type="checkbox" id="remember" checked> Rester connecté sur cet ordinateur</label>
+    <div style="margin-top:14px"><button class="btn" id="loginBtn" style="width:100%">Se connecter</button></div>
+    <div id="loginMsg"></div>
+  </div>
+</section>
+
+<!-- ================= APP ================= -->
+<section id="app" class="hide">
+  <nav class="side">
+    <div class="brand"><b>Contrôle&nbsp;QC</b><small>DPC · RDPQ</small></div>
+    <button class="navbtn" data-v="new"><span class="ic">＋</span>Nouveau contrôle</button>
+    <button class="navbtn" data-v="dash"><span class="ic">◎</span>Erreurs fréquentes</button>
+    <button class="navbtn" data-v="hist"><span class="ic">☰</span>Historique</button>
+    <button class="navbtn admin-only" data-v="cfg"><span class="ic">⚙</span>Configuration</button>
+    <div class="week" id="weekBox"></div>
+    <div class="me" id="meBox"></div>
+  </nav>
+  <main id="main"></main>
+</section>
+
+<div id="boot" class="loading"><div class="spin d"></div>Chargement…</div>
+
+<script>
+"use strict";
+/* =====================================================================
+   Contrôle de qualité 2.0 · DPC RDPQ
+   Base de données : projet Asana « Contrôle de qualité 2.0 - Résultats (outil) »
+   ===================================================================== */
+const API = "https://app.asana.com/api/1.0";
+const PROJECT = "1220908332416301";
+const SECTIONS = { opti: "1220908332622827", reopt: "1220908200946943", config: "1220908314754948" };
+const TEAM = "1202217932354208";
+const CONFIG_NAME = "⚙️ CONFIG QC (ne pas supprimer)";
+
+const USERS = {
+  samuel: "1202700020089408", amine: "1207234609671782", catherine: "1202110773064350",
+  redwane: "1207234608501413", gougoux: "1202700020263869"
+};
+
+const DEFAULT_CONFIG = {
+  version: 1,
+  admins: [USERS.samuel, USERS.amine, USERS.catherine, USERS.redwane],
+  supervisorGid: USERS.samuel,
+  coachName: "Gougoux",
+  weeklyTarget: 10,
+  repeat: { verbal: 2, written: 4 },
+  bilanEvery: 5,
+  correction: { projectGid: "1204865961692265", sectionGid: "1210526344657080", hours: 24 },
+  types: {
+    opti: { label: "Optimisation", supAtOrBelow: 16 },
+    reopt: { label: "Réoptimisation", supAtOrBelow: 6 }
+  },
+  members: [
+    { id: "fatima1", name: "Fatima El Moukhtari", gid: "1209272022005249", active: true },
+    { id: "fatima2", name: "Fatima Zohra Roky", gid: "1209466718805972", active: true },
+    { id: "hind", name: "Hind", gid: "", active: true },
+    { id: "ikhlass", name: "Ikhlass", gid: "1207660726566651", active: true },
+    { id: "imane", name: "Imane", gid: "1210110829307917", active: true },
+    { id: "rehab", name: "Rehab", gid: "1207833924170121", active: true },
+    { id: "rania", name: "Rania Wadi", gid: "1218879663216145", active: true },
+    { id: "salma", name: "Salma Mouthar", gid: "1218862989588207", active: true },
+    { id: "gougoux", name: "Gougoux", gid: USERS.gougoux, active: true }
+  ],
+  checklists: {
+    opti: [
+      { id: "assign", label: "Tâche bien assignée", desc: "La tâche est assignée dans Asana et dans Totem au bon gestionnaire." },
+      { id: "banniere", label: "Bannière", desc: "Belle bannière. Si le client a de belles images, ce sont elles qu'on y retrouve. Doit contenir au moins une photo de la bibliothèque du client." },
+      { id: "page411", label: "Double check de la page 411", desc: "Pas de doublons dans les services, tous les liens fonctionnent, orthographe OK. Autre erreur sur la page 411 : capture avant correction, documenter ici, Amine sera notifié.", notify: USERS.amine },
+      { id: "cid", label: "CID et code magasin", desc: "CID copié et enregistré dans Totem, code magasin inscrit." },
+      { id: "captures", label: "Captures d'écran", desc: "Présentes dans Totem : accès, profil, produits (si existants), services, photos." },
+      { id: "profil", label: "Profil GBP", critical: true, desc: "Nom comme dans Totem (sinon justification d'un Spécialiste Google), catégorie et sous-catégories, description (nom + vertical + secteur), date d'ouverture conforme à Totem." },
+      { id: "nap", label: "Adresse et téléphone", critical: true, desc: "Aucune modification non autorisée." },
+      { id: "motscles", label: "Mots-clés", desc: "Bien intégrés. Textes générés par l'IA relus : articles ajoutés (massage pour enfants, mécanique de poids lourds)." },
+      { id: "web", label: "Site Web et réseaux sociaux", desc: "URL de la page 411 valide, réseaux sociaux vérifiés et ajoutés." },
+      { id: "zone", label: "Zone desservie", desc: "Inchangée, sauf correction validée par un Spécialiste Google." },
+      { id: "heures", label: "Heures d'ouverture", desc: "Conformes à Totem." },
+      { id: "attributs", label: "Attributs", desc: "Modes de paiement et planification ajoutés selon Totem." },
+      { id: "services", label: "Services GBP", desc: "Seulement les services offerts par le client, conformes à la page 411 / site web, au moins 5 descriptifs (sauf avocats, notaires et professionnels de la santé). Attention aux services proposés par Google." },
+      { id: "produits", label: "Produits GBP", desc: "3 produits pertinents créés. Pas de produits pour avocats, notaires et professionnels de la santé (mettre N/A)." },
+      { id: "reservations", label: "Réservations", desc: "Lien de rendez-vous ou de soumission ajouté." },
+      { id: "photos", label: "Photos", desc: "Photos du client ou génériques ajoutées, logo 400×400, couverture horizontale." },
+      { id: "publications", label: "Publications", desc: "1 mise à jour personnalisée ajoutée." },
+      { id: "analytics", label: "Analytics", desc: "GBP relié à Analytics, tagging effectué." },
+      { id: "shortlink", label: "Courriel short link et code QR", desc: "Note bien inscrite dans Totem." },
+      { id: "avis", label: "Type d'avis", desc: "Type de réponse conforme au forfait et aux demandes du client." },
+      { id: "activite", label: "Activité Totem", desc: "Activité bien entrée et conforme." },
+      { id: "fermeture", label: "Fermeture des tâches", desc: "Tâches bien fermées dans Totem et dans Asana." }
+    ],
+    reopt: [
+      { id: "r_nom", label: "Nom de l'entreprise", critical: true, desc: "Conforme à Totem (sinon justification d'un Spécialiste Google)." },
+      { id: "r_nap", label: "Adresse et téléphone", critical: true, desc: "Corrects, aucune modification non autorisée." },
+      { id: "r_heures", label: "Heures d'ouverture", desc: "Conformes à Totem." },
+      { id: "r_web", label: "Site Web et liens", desc: "URL valide, liens fonctionnels." },
+      { id: "r_pub", label: "Publication récente", desc: "Une publication récente et personnalisée est en ligne." },
+      { id: "r_photos", label: "Nouvelles photos", desc: "De nouvelles photos ont été ajoutées." },
+      { id: "r_avis", label: "Type de réponse aux avis", desc: "Conforme au forfait et aux demandes du client." },
+      { id: "r_activite", label: "Activité Totem", desc: "Activité bien entrée et conforme." },
+      { id: "r_fermeture", label: "Fermeture des tâches", desc: "Tâches bien fermées dans Totem et dans Asana." }
+    ]
+  }
+};
+
+/* ---------------- state ---------------- */
+const S = {
+  token: null, me: null, cfg: null, cfgTask: null, isAdmin: false,
+  records: [], loaded: false, view: "new", form: null, teamUsers: null,
+  dash: { period: "all", from: "", to: "", type: "all", member: "all" },
+  hist: { q: "", type: "all", member: "all" }
+};
+
+/* ---------------- utils ---------------- */
+const $ = (s, el = document) => el.querySelector(s);
+const esc = (v) => String(v ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const xml = esc;
+const todayStr = () => new Date().toLocaleDateString("en-CA");
+const fmtDate = (d) => { if (!d) return ""; const [y, m, dd] = d.split("-"); return `${dd}/${m}/${y}`; };
+const pct = (s, t) => t ? Math.round(s / t * 100) : 0;
+const clone = (o) => JSON.parse(JSON.stringify(o));
+const uid = () => Math.random().toString(36).slice(2, 8);
+function scoreClass(s, t) { const p = s / t; return p >= .9 ? "s-hi" : p >= .78 ? "s-mid" : "s-lo"; }
+function toast(t, ms = 2600) { const d = document.createElement("div"); d.className = "toast"; d.textContent = t; document.body.appendChild(d); setTimeout(() => d.remove(), ms); }
+function startOfWeek(d = new Date()) { const x = new Date(d); x.setHours(0, 0, 0, 0); const day = (x.getDay() + 6) % 7; x.setDate(x.getDate() - day); return x; }
+const ds = (d) => d.toLocaleDateString("en-CA");
+
+/* ---------------- Asana API ---------------- */
+async function api(method, path, body) {
+  const res = await fetch(API + path, {
+    method,
+    headers: { Authorization: "Bearer " + S.token, Accept: "application/json", ...(body ? { "Content-Type": "application/json" } : {}) },
+    body: body ? JSON.stringify({ data: body }) : undefined
+  });
+  if (res.status === 204) return null;
+  let j = null; try { j = await res.json(); } catch (e) { }
+  if (!res.ok) {
+    const m = j?.errors?.[0]?.message || ("Erreur Asana " + res.status);
+    const err = new Error(m); err.status = res.status; throw err;
+  }
+  return j;
+}
+async function getAll(path) {
+  let out = [], offset = null;
+  const sep = path.includes("?") ? "&" : "?";
+  do {
+    const j = await api("GET", path + sep + "limit=100" + (offset ? "&offset=" + encodeURIComponent(offset) : ""));
+    out = out.concat(j.data || []);
+    offset = j.next_page?.offset || null;
+  } while (offset);
+  return out;
+}
+function extractJSON(notes, marker) {
+  if (!notes) return null;
+  const i = notes.lastIndexOf(marker);
+  if (i < 0) return null;
+  let s = notes.slice(i + marker.length);
+  const end = s.lastIndexOf("}");
+  if (end < 0) return null;
+  try { return JSON.parse(s.slice(0, end + 1)); } catch (e) { return null; }
+}
+
+/* ---------------- config ---------------- */
+function mergeCfg(saved) {
+  const c = clone(DEFAULT_CONFIG);
+  if (!saved) return c;
+  for (const k of Object.keys(saved)) c[k] = saved[k];
+  c.types = Object.assign(clone(DEFAULT_CONFIG.types), saved.types || {});
+  c.repeat = Object.assign(clone(DEFAULT_CONFIG.repeat), saved.repeat || {});
+  c.correction = Object.assign(clone(DEFAULT_CONFIG.correction), saved.correction || {});
+  c.checklists = Object.assign(clone(DEFAULT_CONFIG.checklists), saved.checklists || {});
+  return c;
+}
+function cfgNotes(cfg) {
+  return `<body><h2>Configuration de l'outil Contrôle de qualité 2.0</h2>Cette tâche contient la configuration de l'outil (checklists, membres, administrateurs, seuils). Elle se modifie dans l'onglet Configuration de l'outil. <strong>Ne pas supprimer ni modifier à la main.</strong><hr/><pre>QCCONFIG:${xml(JSON.stringify(cfg))}</pre></body>`;
+}
+async function loadConfig() {
+  const tasks = await getAll(`/sections/${SECTIONS.config}/tasks?opt_fields=name,notes`);
+  const t = tasks.find(x => (x.name || "").includes("CONFIG QC"));
+  if (t) {
+    S.cfgTask = t.gid;
+    S.cfg = mergeCfg(extractJSON(t.notes, "QCCONFIG:"));
+  } else {
+    S.cfg = mergeCfg(null);
+    if (DEFAULT_CONFIG.admins.includes(S.me.gid)) {
+      const j = await api("POST", "/tasks", { name: CONFIG_NAME, projects: [PROJECT], html_notes: cfgNotes(S.cfg) });
+      S.cfgTask = j.data.gid;
+      await api("POST", `/sections/${SECTIONS.config}/addTask`, { task: S.cfgTask });
+    }
+  }
+}
+async function saveConfig(cfg) {
+  if (!S.cfgTask) throw new Error("Tâche de configuration introuvable.");
+  await api("PUT", `/tasks/${S.cfgTask}`, { html_notes: cfgNotes(cfg) });
+  S.cfg = cfg;
+}
+
+/* ---------------- records ---------------- */
+async function loadRecords() {
+  const tasks = await getAll(`/projects/${PROJECT}/tasks?opt_fields=name,notes,permalink_url,created_at`);
+  const recs = [];
+  for (const t of tasks) {
+    const d = extractJSON(t.notes, "QCDATA:");
+    if (d && d.type && d.results) recs.push(Object.assign(d, { gid: t.gid, url: t.permalink_url }));
+  }
+  recs.sort((a, b) => (b.date + (b.createdAt || "")).localeCompare(a.date + (a.createdAt || "")));
+  S.records = recs; S.loaded = true;
+}
+function recordName(r) {
+  return `${r.critical.length ? "⚠️ " : ""}${r.score}/${r.total} · ${r.clientId ? r.clientId + " " : ""}${r.clientName} · ${r.memberName}`;
+}
+function recordNotes(r) {
+  const errs = Object.keys(r.results).filter(k => r.results[k] === "err");
+  const lab = (k) => r.labels[k] || k;
+  let h = `<body><h2>${xml(S.cfg.types[r.type]?.label || r.type)} · ${xml(r.clientId)} ${xml(r.clientName)}</h2>`;
+  h += `<strong>Score : ${r.score}/${r.total}</strong> (${pct(r.score, r.total)} %)<br/>`;
+  h += `Réalisée par : ${xml(r.memberName)}<br/>Contrôle fait par : ${xml(r.controllerName)}<br/>Date du contrôle : ${xml(fmtDate(r.date))}`;
+  if (r.link) h += `<br/>Fiche : ${/^https:\/\//.test(r.link) ? `<a href="${xml(r.link)}">${xml(r.link)}</a>` : xml(r.link)}`;
+  h += `<h2>Erreurs (${errs.length})</h2>`;
+  if (errs.length) {
+    h += "<ul>" + errs.map(k => `<li><strong>${xml(lab(k))}</strong>${r.critical.includes(k) ? " ⚠️" : ""} : ${xml(r.notes[k] || "")}</li>`).join("") + "</ul>";
+  } else h += "Aucune erreur. Contrôle parfait.";
+  if (r.comment) h += `<h2>Commentaire</h2>${xml(r.comment).replace(/\n/g, "<br/>")}`;
+  h += `<h2>Suivi</h2>${xml(decisions(r).map(d => d.t).join(" | "))}`;
+  h += `<hr/><em>Généré par l'outil Contrôle de qualité 2.0. Ne pas modifier le bloc ci-dessous.</em><pre>QCDATA:${xml(JSON.stringify(stripRec(r)))}</pre></body>`;
+  return h;
+}
+function stripRec(r) { const o = Object.assign({}, r); delete o.gid; delete o.url; return o; }
+
+/* ---------------- business rules ---------------- */
+function memberById(id) { return S.cfg.members.find(m => m.id === id); }
+function decisions(r) {
+  const out = [];
+  const errs = Object.keys(r.results).filter(k => r.results[k] === "err");
+  const t = S.cfg.types[r.type] || {};
+  const crit = r.critical || [];
+  const supName = supervisorName();
+  if (!errs.length) { out.push({ c: "var(--ok)", t: "Contrôle parfait : aucun suivi requis." }); return out; }
+  const supNeeded = r.score <= (t.supAtOrBelow ?? -1) || crit.length > 0;
+  if (supNeeded) {
+    const why = [];
+    if (r.score <= (t.supAtOrBelow ?? -1)) why.push(`note ≤ ${t.supAtOrBelow}/${r.total}`);
+    if (crit.length) why.push("point ⚠️ échoué");
+    out.push({ c: "var(--err)", t: `${supName} est tagué et rencontre la personne (${why.join(", ")}).`, sup: true });
+  } else {
+    out.push({ c: "var(--warn)", t: `Rencontre de feedback constructif avec ${S.cfg.coachName}.` });
+  }
+  out.push({ c: "var(--accent)", t: `Correction à faire par ${r.memberName} dans les ${S.cfg.correction.hours} h.` });
+  return out;
+}
+function supervisorName() {
+  const g = S.cfg.supervisorGid;
+  if (g === USERS.samuel) return "Samuel";
+  const u = (S.teamUsers || []).find(x => x.gid === g);
+  return u ? u.name.split(" ")[0] : "Le superviseur";
+}
+function checklist(type) { return (S.cfg.checklists[type] || []).filter(p => p.active !== false); }
+function computeScore(form) {
+  const pts = checklist(form.type);
+  const total = pts.length;
+  const errs = pts.filter(p => form.results[p.id] === "err");
+  return { total, score: total - errs.length, errs, crit: errs.filter(p => p.critical) };
+}
+
+/* ---------------- auth ---------------- */
+async function login(token, remember) {
+  S.token = token;
+  const me = await api("GET", "/users/me?opt_fields=name,email");
+  S.me = me.data;
+  try { await api("GET", `/projects/${PROJECT}?opt_fields=name`); }
+  catch (e) { const er = new Error("Ton compte Asana n'a pas accès au projet « Contrôle de qualité 2.0 ». Demande à Samuel de t'ajouter comme membre."); er.status = 403; throw er; }
+  if (remember) localStorage.setItem("qc_token", token); else sessionStorage.setItem("qc_token", token);
+  await loadConfig();
+  S.isAdmin = S.cfg.admins.includes(S.me.gid);
+}
+function logout() { localStorage.removeItem("qc_token"); sessionStorage.removeItem("qc_token"); location.reload(); }
+
+async function boot() {
+  const saved = localStorage.getItem("qc_token") || sessionStorage.getItem("qc_token");
+  $("#boot").classList.add("hide");
+  if (!saved) return showLogin();
+  $("#boot").classList.remove("hide");
+  try { await login(saved, !!localStorage.getItem("qc_token")); await enterApp(); }
+  catch (e) { $("#boot").classList.add("hide"); showLogin(e.status === 401 ? "Ta session a expiré. Recolle ton jeton Asana." : e.message); }
+}
+function showLogin(msg) {
+  $("#login").classList.remove("hide");
+  $("#loginMsg").innerHTML = msg ? `<div class="msg e">${esc(msg)}</div>` : "";
+}
+$("#loginBtn").onclick = async () => {
+  const tok = $("#pat").value.trim();
+  if (!tok) return showLogin("Colle ton jeton d'accès Asana.");
+  $("#loginBtn").disabled = true; $("#loginBtn").innerHTML = '<div class="spin"></div>Connexion…';
+  try { await login(tok, $("#remember").checked); $("#login").classList.add("hide"); await enterApp(); }
+  catch (e) { showLogin(e.status === 401 ? "Jeton refusé par Asana. Vérifie que tu l'as copié au complet." : e.message); }
+  $("#loginBtn").disabled = false; $("#loginBtn").textContent = "Se connecter";
+};
+$("#pat").addEventListener("keydown", e => { if (e.key === "Enter") $("#loginBtn").click(); });
+
+async function enterApp() {
+  $("#boot").classList.add("hide");
+  $("#app").classList.remove("hide");
+  document.querySelectorAll(".admin-only").forEach(el => el.classList.toggle("hide", !S.isAdmin));
+  $("#meBox").innerHTML = `<b>${esc(S.me.name)}</b>${esc(S.me.email || "")}<br><span class="role">${S.isAdmin ? "Administrateur" : "Contrôleur"}</span><div style="margin-top:10px"><button class="btn ghost sm" id="logoutBtn" style="color:#C9D1E3;border-color:rgba(255,255,255,.2)">Se déconnecter</button></div>`;
+  $("#logoutBtn").onclick = logout;
+  document.querySelectorAll(".navbtn").forEach(b => b.onclick = () => go(b.dataset.v));
+  go(S.isAdmin ? "dash" : "new");
+  try { await loadRecords(); } catch (e) { toast("Impossible de charger les contrôles : " + e.message, 5000); S.loaded = true; }
+  renderWeek();
+  if (S.view !== "new") render();
+}
+function renderWeek() {
+  const wk = ds(startOfWeek());
+  const n = S.records.filter(r => r.controllerGid === S.me.gid && r.date >= wk).length;
+  const t = S.cfg.weeklyTarget || 10;
+  $("#weekBox").innerHTML = `Mes contrôles cette semaine<div style="display:flex;justify-content:space-between;margin-top:4px"><b style="color:#fff;font-size:18px">${n}</b><span>objectif ${t}</span></div><div class="bar"><i style="width:${Math.min(100, pct(n, t))}%"></i></div>`;
+}
+function go(v) {
+  S.view = v;
+  document.querySelectorAll(".navbtn").forEach(b => b.classList.toggle("on", b.dataset.v === v));
+  if (v === "new" && !S.form) S.form = newForm("opti");
+  render();
+  window.scrollTo(0, 0);
+}
+function render() {
+  const m = $("#main");
+  if (S.view === "new") return renderForm(m);
+  if (!S.loaded) { m.innerHTML = '<div class="loading"><div class="spin d"></div>Chargement des contrôles depuis Asana…</div>'; return; }
+  if (S.view === "dash") return renderDash(m);
+  if (S.view === "hist") return renderHist(m);
+  if (S.view === "cfg") return renderCfg(m);
+}
+
+/* =====================================================================
+   NOUVEAU CONTRÔLE
+   ===================================================================== */
+function newForm(type, base) {
+  const f = { type, clientId: "", clientName: "", link: "", memberId: "", date: todayStr(), results: {}, notes: {}, comment: "", doCorrection: true, doTag: true, editGid: null };
+  checklist(type).forEach(p => f.results[p.id] = "ok");
+  return Object.assign(f, base || {});
+}
+function renderForm(m) {
+  const f = S.form;
+  const pts = checklist(f.type);
+  const members = S.cfg.members.filter(x => x.active !== false || x.id === f.memberId);
+  m.innerHTML = `
+  <div class="head">
+    <div><h1>${f.editGid ? "Modifier le contrôle" : "Nouveau contrôle"}</h1><p>Tout est conforme par défaut : clique seulement sur ce qui est en erreur.</p></div>
+    <div class="typesw">${Object.keys(S.cfg.types).map(k => `<button data-type="${k}" class="${f.type === k ? "on" : ""}">${esc(S.cfg.types[k].label)} <span class="mono" style="opacity:.6">/${checklist(k).length}</span></button>`).join("")}</div>
+  </div>
+  <div class="formgrid">
+    <div>
+      <div class="card pad">
+        <div class="meta">
+          <div class="field"><label>N° client Totem</label><input class="inp mono" id="f_cid" value="${esc(f.clientId)}" placeholder="79588"></div>
+          <div class="field w2"><label>Nom du client *</label><input class="inp" id="f_cname" value="${esc(f.clientName)}" placeholder="A.X Déménagement"></div>
+          <div class="field"><label>Date du contrôle</label><input class="inp" type="date" id="f_date" value="${esc(f.date)}"></div>
+          <div class="field w2"><label>${esc(S.cfg.types[f.type].label)} réalisée par *</label>
+            <select class="inp" id="f_member"><option value="">Choisir…</option>${members.map(x => `<option value="${esc(x.id)}" ${x.id === f.memberId ? "selected" : ""}>${esc(x.name)}</option>`).join("")}</select></div>
+          <div class="field w2"><label>Lien de la fiche (Totem ou GBP)</label><input class="inp" id="f_link" value="${esc(f.link)}" placeholder="https://…"></div>
+        </div>
+        <div id="dupBox"></div>
+      </div>
+      <div class="card points" id="ptsBox">
+        ${pts.map((p, i) => ptRow(p, i)).join("")}
+      </div>
+      <div class="card pad" style="margin-top:18px">
+        <div class="field" style="margin:0"><label>Commentaire général (optionnel)</label><textarea class="inp" id="f_comment" placeholder="Résumé de l'évaluation, contexte, points forts…">${esc(f.comment)}</textarea></div>
+      </div>
+    </div>
+    <aside class="verdict"><div class="card pad" id="verdictBox"></div></aside>
+  </div>`;
+  m.querySelectorAll("[data-type]").forEach(b => b.onclick = () => {
+    if (b.dataset.type === f.type) return;
+    const keep = { clientId: f.clientId, clientName: f.clientName, link: f.link, memberId: f.memberId, date: f.date, comment: f.comment, editGid: f.editGid };
+    S.form = newForm(b.dataset.type, keep); renderForm(m);
+  });
+  const bind = (id, key) => $(id).oninput = (e) => { f[key] = e.target.value; if (key === "clientId" || key === "clientName") renderDup(); if (key === "memberId") renderVerdict(); };
+  bind("#f_cid", "clientId"); bind("#f_cname", "clientName"); bind("#f_date", "date"); bind("#f_link", "link"); bind("#f_comment", "comment");
+  $("#f_member").onchange = (e) => { f.memberId = e.target.value; renderVerdict(); };
+  bindPoints();
+  renderDup(); renderVerdict();
+}
+function ptRow(p, i) {
+  const f = S.form; const st = f.results[p.id] || "ok";
+  return `<div class="pt ${st}" data-pt="${esc(p.id)}">
+    <div class="n">${String(i + 1).padStart(2, "0")}</div>
+    <div><div class="lab">${esc(p.label)}${p.critical ? '<span class="crit">⚠️ critique</span>' : ""}</div>
+      <div class="desc">${esc(p.desc || "")}</div>
+      ${st === "err" ? `<textarea class="inp" data-note="${esc(p.id)}" placeholder="Qu'est-ce qui est à corriger ? (sera envoyé dans la tâche de correction)">${esc(f.notes[p.id] || "")}</textarea>` : ""}
+    </div>
+    <div class="seg">
+      <button class="ok ${st === "ok" ? "on" : ""}" data-set="ok" title="Conforme">✓</button>
+      <button class="err ${st === "err" ? "on" : ""}" data-set="err" title="Erreur">✗ Erreur</button>
+      <button class="na ${st === "na" ? "on" : ""}" data-set="na" title="Ne s'applique pas (compte comme conforme)">N/A</button>
+    </div>
+  </div>`;
+}
+function bindPoints() {
+  const f = S.form;
+  document.querySelectorAll("#ptsBox .pt").forEach(row => {
+    const id = row.dataset.pt;
+    row.querySelectorAll("[data-set]").forEach(b => b.onclick = () => {
+      f.results[id] = b.dataset.set;
+      const pts = checklist(f.type); const i = pts.findIndex(p => p.id === id);
+      const tmp = document.createElement("div"); tmp.innerHTML = ptRow(pts[i], i);
+      row.replaceWith(tmp.firstElementChild); bindPoints(); renderVerdict();
+      if (b.dataset.set === "err") { const ta = document.querySelector(`[data-note="${CSS.escape(id)}"]`); ta && ta.focus(); }
+    });
+    const ta = row.querySelector("textarea");
+    if (ta) ta.oninput = (e) => { f.notes[id] = e.target.value; };
+  });
+}
+function renderDup() {
+  const f = S.form; const box = $("#dupBox"); if (!box) return;
+  const cid = f.clientId.trim(); const nm = f.clientName.trim().toLowerCase();
+  if (!cid && nm.length < 4) { box.innerHTML = ""; return; }
+  const prev = S.records.filter(r => r.gid !== f.editGid && ((cid && r.clientId === cid) || (!cid && nm && (r.clientName || "").toLowerCase() === nm)));
+  box.innerHTML = prev.length ? `<div class="dup">Déjà contrôlé ${prev.length} fois : ${prev.slice(0, 3).map(r => `${esc(fmtDate(r.date))} (${r.score}/${r.total}, ${esc(r.memberName)})`).join(" · ")}</div>` : "";
+}
+function ring(score, total, size = 92) {
+  const p = total ? score / total : 0, r = size / 2 - 7, c = 2 * Math.PI * r;
+  const col = p >= .9 ? "var(--ok)" : p >= .78 ? "var(--warn)" : "var(--err)";
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="var(--nabg)" stroke-width="9"/><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="${col}" stroke-width="9" stroke-linecap="round" stroke-dasharray="${c * p} ${c}" transform="rotate(-90 ${size / 2} ${size / 2})"/><text x="50%" y="54%" text-anchor="middle" font-family="IBM Plex Mono" font-weight="600" font-size="15" fill="var(--ink)">${Math.round(p * 100)}%</text></svg>`;
+}
+function renderVerdict() {
+  const f = S.form; const box = $("#verdictBox"); if (!box) return;
+  const sc = computeScore(f);
+  const mem = memberById(f.memberId);
+  const fake = { type: f.type, results: f.results, score: sc.score, total: sc.total, critical: sc.crit.map(p => p.id), memberName: mem ? mem.name : "la personne" };
+  const dec = decisions(fake);
+  const supNeeded = dec.some(d => d.sup);
+  const notifyPts = sc.errs.filter(p => p.notify);
+  const hasErr = sc.errs.length > 0;
+  box.innerHTML = `
+    <div class="ring">${ring(sc.score, sc.total)}<div><div class="big">${sc.score}<small>/${sc.total}</small></div><div style="color:var(--mute);font-size:13px">${sc.errs.length} erreur${sc.errs.length > 1 ? "s" : ""}${sc.crit.length ? ` · <b style="color:var(--err)">${sc.crit.length} critique${sc.crit.length > 1 ? "s" : ""}</b>` : ""}</div></div></div>
+    <ul class="dec">${dec.map(d => `<li><span class="dot" style="background:${d.c}"></span><span>${esc(d.t)}</span></li>`).join("")}</ul>
+    ${hasErr && !f.editGid ? `<div class="opts">
+      <label class="check"><input type="checkbox" id="o_corr" ${f.doCorrection ? "checked" : ""} ${mem && mem.gid ? "" : "disabled"}> Créer la tâche de correction (${S.cfg.correction.hours} h) assignée à ${esc(mem ? mem.name : "…")}${mem && !mem.gid ? " <em>(aucun compte Asana lié)</em>" : ""}</label>
+      ${supNeeded ? `<label class="check"><input type="checkbox" id="o_tag" ${f.doTag ? "checked" : ""}> Taguer ${esc(supervisorName())} dans Asana</label>` : ""}
+      ${notifyPts.length ? `<div class="check" style="color:var(--mute)">↳ ${notifyPts.map(p => esc(p.label)).join(", ")} : la personne responsable sera notifiée.</div>` : ""}
+    </div>` : ""}
+    <button class="btn" id="saveBtn" style="width:100%;padding:14px">${f.editGid ? "Enregistrer les modifications" : "Enregistrer le contrôle"}</button>
+    ${f.editGid ? `<button class="btn ghost" id="cancelEdit" style="width:100%;margin-top:8px">Annuler</button>` : ""}
+    <div id="saveMsg"></div>`;
+  const oc = $("#o_corr"); if (oc) oc.onchange = e => f.doCorrection = e.target.checked;
+  const ot = $("#o_tag"); if (ot) ot.onchange = e => f.doTag = e.target.checked;
+  $("#saveBtn").onclick = saveControl;
+  const ce = $("#cancelEdit"); if (ce) ce.onclick = () => { S.form = newForm("opti"); go("hist"); };
+}
+async function saveControl() {
+  const f = S.form; const msg = $("#saveMsg");
+  const sc = computeScore(f); const mem = memberById(f.memberId);
+  const fail = (t) => { msg.innerHTML = `<div class="msg e">${esc(t)}</div>`; };
+  if (!f.clientName.trim()) return fail("Indique le nom du client.");
+  if (!mem) return fail("Indique qui a réalisé l'optimisation.");
+  const missing = sc.errs.filter(p => !(f.notes[p.id] || "").trim());
+  if (missing.length) return fail("Décris l'erreur pour : " + missing.map(p => p.label).join(", ") + ".");
+  const btn = $("#saveBtn"); btn.disabled = true; btn.innerHTML = '<div class="spin"></div>Enregistrement dans Asana…';
+  const pts = checklist(f.type);
+  const labels = {}, results = {}, notes = {};
+  pts.forEach(p => { labels[p.id] = p.label; results[p.id] = f.results[p.id] || "ok"; if (results[p.id] === "err") notes[p.id] = f.notes[p.id].trim(); });
+  const old = f.editGid ? S.records.find(r => r.gid === f.editGid) : null;
+  const rec = {
+    v: 1, type: f.type, clientId: f.clientId.trim(), clientName: f.clientName.trim(), link: f.link.trim(),
+    memberId: mem.id, memberName: mem.name, memberGid: mem.gid || "",
+    controllerGid: old ? old.controllerGid : S.me.gid, controllerName: old ? old.controllerName : S.me.name,
+    date: f.date || todayStr(), results, notes, labels, critical: sc.crit.map(p => p.id),
+    score: sc.score, total: sc.total, comment: f.comment.trim(),
+    correctionGid: old ? old.correctionGid || "" : "", createdAt: old ? old.createdAt : new Date().toISOString()
+  };
+  try {
+    let gid;
+    if (old) {
+      await api("PUT", `/tasks/${old.gid}`, { name: recordName(rec), html_notes: recordNotes(rec) });
+      if (old.type !== rec.type) await api("POST", `/sections/${SECTIONS[rec.type]}/addTask`, { task: old.gid });
+      gid = old.gid;
+    } else {
+      const j = await api("POST", "/tasks", { name: recordName(rec), html_notes: recordNotes(rec), projects: [PROJECT], completed: true });
+      gid = j.data.gid;
+      await api("POST", `/sections/${SECTIONS[rec.type]}/addTask`, { task: gid });
+      const sc2 = Object.assign({}, rec);
+      const dec = decisions(sc2);
+      const supNeeded = dec.some(d => d.sup);
+      // tâche de correction
+      if (sc.errs.length && f.doCorrection && mem.gid) {
+        try {
+          const due = new Date(Date.now() + S.cfg.correction.hours * 3600e3).toISOString();
+          const list = sc.errs.map(p => `<li><strong>${xml(p.label)}</strong> : ${xml(notes[p.id])}</li>`).join("");
+          const cj = await api("POST", "/tasks", {
+            name: `Corrections contrôle de qualité · ${rec.clientId ? rec.clientId + " " : ""}${rec.clientName}`,
+            assignee: mem.gid, due_at: due, projects: [S.cfg.correction.projectGid], followers: [S.me.gid],
+            html_notes: `<body><strong>Corrections à apporter suite au contrôle de qualité (délai ${S.cfg.correction.hours} h)</strong><ul>${list}</ul>Score obtenu : ${rec.score}/${rec.total}<br/>Contrôle : <a data-asana-gid="${gid}"/></body>`
+          });
+          rec.correctionGid = cj.data.gid;
+          if (S.cfg.correction.sectionGid) { try { await api("POST", `/sections/${S.cfg.correction.sectionGid}/addTask`, { task: cj.data.gid }); } catch (e) { } }
+          await api("PUT", `/tasks/${gid}`, { html_notes: recordNotes(rec) });
+        } catch (e) { toast("Contrôle enregistré, mais la tâche de correction n'a pas pu être créée : " + e.message, 6000); }
+      }
+      // commentaire + mentions
+      const mentions = [];
+      if (supNeeded && f.doTag && S.cfg.supervisorGid) mentions.push(S.cfg.supervisorGid);
+      sc.errs.filter(p => p.notify).forEach(p => { if (!mentions.includes(p.notify)) mentions.push(p.notify); });
+      let body = `<body><strong>Contrôle terminé : ${rec.score}/${rec.total}.</strong> `;
+      body += sc.errs.length ? `${sc.errs.length} erreur(s) : ${xml(sc.errs.map(p => p.label).join(", "))}.` : "Aucune erreur.";
+      if (rec.correctionGid) body += ` Correction : <a data-asana-gid="${rec.correctionGid}"/>.`;
+      if (mentions.length) body += ` ${mentions.map(g => `<a data-asana-gid="${g}"/>`).join(" ")} pour suivi.`;
+      body += "</body>";
+      try { await api("POST", `/tasks/${gid}/stories`, { html_text: body }); } catch (e) { }
+    }
+    const t = await api("GET", `/tasks/${gid}?opt_fields=permalink_url`);
+    rec.gid = gid; rec.url = t.data.permalink_url;
+    S.records = S.records.filter(r => r.gid !== gid); S.records.unshift(rec);
+    S.records.sort((a, b) => (b.date + (b.createdAt || "")).localeCompare(a.date + (a.createdAt || "")));
+    renderWeek();
+    S.form = newForm(f.type);
+    showSaved(rec, !!old);
+  } catch (e) {
+    btn.disabled = false; btn.textContent = "Réessayer";
+    fail("Erreur Asana : " + e.message);
+  }
+}
+function showSaved(rec, edited) {
+  $("#main").innerHTML = `<div class="card pad" style="max-width:640px;margin:40px auto;text-align:center;padding:40px">
+    <div style="display:flex;justify-content:center">${ring(rec.score, rec.total, 120)}</div>
+    <h1 style="font-size:30px;margin-top:14px">${edited ? "Contrôle modifié" : "Contrôle enregistré"}</h1>
+    <p style="color:var(--mute)">${esc(rec.clientName)} · ${esc(rec.memberName)} · ${rec.score}/${rec.total}</p>
+    <ul class="dec" style="text-align:left;max-width:440px;margin:18px auto">${decisions(rec).map(d => `<li><span class="dot" style="background:${d.c}"></span><span>${esc(d.t)}</span></li>`).join("")}
+    ${rec.correctionGid && !edited ? `<li><span class="dot" style="background:var(--ok)"></span><span>Tâche de correction créée et assignée.</span></li>` : ""}</ul>
+    <div class="row" style="justify-content:center;margin-top:20px">
+      <a class="btn ghost" href="${esc(rec.url)}" target="_blank" rel="noopener">Ouvrir dans Asana</a>
+      <button class="btn" id="againBtn">Nouveau contrôle</button>
+    </div></div>`;
+  $("#againBtn").onclick = () => go("new");
+}
+
+/* =====================================================================
+   TABLEAU DE BORD · ERREURS FRÉQUENTES
+   ===================================================================== */
+const PERIODS = [["all", "Depuis le début"], ["week", "Cette semaine"], ["month", "Ce mois-ci"], ["lastmonth", "Mois dernier"], ["30", "30 derniers jours"], ["custom", "Personnalisé"]];
+function periodRange(p, from, to) {
+  const now = new Date();
+  if (p === "week") return [ds(startOfWeek()), "9999"];
+  if (p === "month") return [ds(new Date(now.getFullYear(), now.getMonth(), 1)), "9999"];
+  if (p === "lastmonth") return [ds(new Date(now.getFullYear(), now.getMonth() - 1, 1)), ds(new Date(now.getFullYear(), now.getMonth(), 0))];
+  if (p === "30") { const d = new Date(); d.setDate(d.getDate() - 29); return [ds(d), "9999"]; }
+  if (p === "custom") return [from || "0000", to || "9999"];
+  return ["0000", "9999"];
+}
+function filtered(f) {
+  const [a, b] = periodRange(f.period, f.from, f.to);
+  return S.records.filter(r => r.date >= a && r.date <= b && (f.type === "all" || r.type === f.type) && (f.member === "all" || r.memberId === f.member));
+}
+function pointLabel(type, id, rec) {
+  const p = (S.cfg.checklists[type] || []).find(x => x.id === id);
+  return p ? p.label : (rec?.labels?.[id] || id);
+}
+function pointStats(recs) {
+  const m = new Map();
+  for (const r of recs) for (const [id, st] of Object.entries(r.results)) {
+    const k = r.type + ":" + id;
+    if (!m.has(k)) m.set(k, { key: k, type: r.type, id, label: pointLabel(r.type, id, r), err: 0, appl: 0, crit: false, who: {}, occ: [] });
+    const o = m.get(k);
+    if (st !== "na") o.appl++;
+    if (st === "err") { o.err++; o.who[r.memberName] = (o.who[r.memberName] || 0) + 1; o.occ.push(r); if ((r.critical || []).includes(id)) o.crit = true; }
+  }
+  return [...m.values()].filter(o => o.err > 0).sort((a, b) => b.err - a.err || (b.err / b.appl) - (a.err / a.appl));
+}
+function memberStats(recs) {
+  const m = new Map();
+  for (const r of recs) {
+    if (!m.has(r.memberId)) m.set(r.memberId, { id: r.memberId, name: r.memberName, n: 0, sum: 0, perfect: 0, crit: 0, last: "", pts: {} });
+    const o = m.get(r.memberId);
+    o.n++; o.sum += r.score / r.total; if (r.score === r.total) o.perfect++; o.crit += (r.critical || []).length; if (r.date > o.last) o.last = r.date;
+    for (const [id, st] of Object.entries(r.results)) if (st === "err") { const k = r.type + ":" + id; o.pts[k] = (o.pts[k] || 0) + 1; }
+  }
+  return [...m.values()].sort((a, b) => a.sum / a.n - b.sum / b.n);
+}
+function alertsOf(recs) {
+  const out = []; const ms = memberStats(recs);
+  for (const m of ms) {
+    for (const [k, n] of Object.entries(m.pts)) {
+      const [type, id] = k.split(":");
+      if (n >= S.cfg.repeat.written) out.push({ lvl: "w", m: m.name, t: `${pointLabel(type, id)} : ${n} fois`, tag: "Avertissement écrit" });
+      else if (n >= S.cfg.repeat.verbal) out.push({ lvl: "v", m: m.name, t: `${pointLabel(type, id)} : ${n} fois`, tag: "Avertissement verbal" });
+    }
+  }
+  const all = memberStats(S.records);
+  for (const m of all) {
+    const every = S.cfg.bilanEvery || 5;
+    if (m.n > 0 && m.n % every === 0) out.push({ lvl: "b", m: m.name, t: `${m.n} contrôles complétés : planifier la rencontre bilan (30 min max)`, tag: "Bilan" });
+  }
+  const order = { w: 0, v: 1, b: 2 };
+  return out.sort((a, b) => order[a.lvl] - order[b.lvl]);
+}
+function renderDash(m) {
+  const f = S.dash;
+  const recs = filtered(f);
+  const n = recs.length;
+  const avg = n ? Math.round(recs.reduce((s, r) => s + r.score / r.total, 0) / n * 100) : 0;
+  const withErr = recs.filter(r => r.score < r.total).length;
+  const crit = recs.reduce((s, r) => s + (r.critical || []).length, 0);
+  const ps = pointStats(recs);
+  const ms = memberStats(recs);
+  const al = alertsOf(recs);
+  const maxErr = ps[0]?.err || 1;
+  const first = S.records.length ? S.records[S.records.length - 1].date : null;
+  const members = S.cfg.members;
+  m.innerHTML = `
+  <div class="head"><div><h1>Erreurs fréquentes</h1><p>${first ? `Basé sur ${S.records.length} contrôle${S.records.length > 1 ? "s" : ""} faits avec l'outil depuis le ${esc(fmtDate(first))}.` : "Aucun contrôle encore enregistré avec l'outil."}</p></div>
+    <div class="row">${S.isAdmin ? `<button class="btn ghost sm" id="reportBtn">Copier le rapport</button>` : ""}<button class="btn ghost sm" id="refreshBtn">↻ Actualiser</button></div></div>
+  <div class="filters">
+    <div class="chips">${PERIODS.map(([k, l]) => `<button class="chip ${f.period === k ? "on" : ""}" data-p="${k}">${l}</button>`).join("")}</div>
+    ${f.period === "custom" ? `<input type="date" class="inp sm" id="d_from" value="${esc(f.from)}"><span style="color:var(--mute)">au</span><input type="date" class="inp sm" id="d_to" value="${esc(f.to)}">` : ""}
+    <select class="inp sm" id="d_type"><option value="all">Tous les types</option>${Object.keys(S.cfg.types).map(k => `<option value="${k}" ${f.type === k ? "selected" : ""}>${esc(S.cfg.types[k].label)}</option>`).join("")}</select>
+    <select class="inp sm" id="d_member"><option value="all">Toute l'équipe</option>${members.map(x => `<option value="${esc(x.id)}" ${f.member === x.id ? "selected" : ""}>${esc(x.name)}</option>`).join("")}</select>
+  </div>
+  ${!n ? `<div class="card empty"><b>Rien à afficher pour ce filtre</b>Les erreurs récurrentes apparaîtront ici dès les premiers contrôles.</div>` : `
+  <div class="kpis">
+    <div class="card kpi"><div class="l">Contrôles</div><div class="v">${n}</div><div class="s">${withErr} avec au moins une erreur</div></div>
+    <div class="card kpi"><div class="l">Score moyen</div><div class="v">${avg}<span style="font-size:20px">%</span></div><div class="s">${recs.filter(r => r.score === r.total).length} contrôle(s) parfait(s)</div></div>
+    <div class="card kpi"><div class="l">Erreurs relevées</div><div class="v">${ps.reduce((s, p) => s + p.err, 0)}</div><div class="s">sur ${ps.length} point(s) différent(s)</div></div>
+    <div class="card kpi"><div class="l">Points ⚠️ échoués</div><div class="v" style="color:${crit ? "var(--err)" : "inherit"}">${crit}</div><div class="s">points marqués critiques</div></div>
+  </div>
+  <div class="grid2">
+    <div class="card pad">
+      <div class="sect-t"><h2>Top des erreurs récurrentes</h2><span>clique pour voir les cas</span></div>
+      <div class="rank">${ps.slice(0, 12).map((p, i) => `<button class="rk" data-k="${esc(p.key)}">
+        <span class="i">${i + 1}</span>
+        <div><div class="nm"><span>${esc(p.label)}${p.crit ? " ⚠️" : ""}${f.type === "all" ? ` <span class="tag">${esc(S.cfg.types[p.type]?.label || p.type)}</span>` : ""}</span><em>${pct(p.err, p.appl)} % des contrôles</em></div>
+          <div class="track"><i style="width:${p.err / maxErr * 100}%"></i></div>
+          <div class="who">${Object.entries(p.who).sort((a, b) => b[1] - a[1]).map(([w, c]) => `<span class="tag">${esc(w)} ×${c}</span>`).join("")}</div></div>
+        <span class="ct">${p.err}</span></button>`).join("") || `<div class="empty" style="padding:20px">Aucune erreur sur cette période 🎉</div>`}</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <div class="card pad"><div class="sect-t"><h2>À intervenir</h2><span>règles du processus</span></div>
+        ${al.length ? al.slice(0, 12).map(a => `<div class="alert"><span class="pill ${a.lvl}">${esc(a.tag)}</span><div><b>${esc(a.m)}</b><br><span style="color:var(--mute)">${esc(a.t)}</span></div></div>`).join("") : `<div style="color:var(--mute);font-size:14px">Aucune erreur répétée. Rien à signaler.</div>`}
+      </div>
+      <div class="card pad trend"><div class="sect-t"><h2>Tendance</h2><span>score moyen, 12 dernières semaines</span></div>${trendSvg()}</div>
+    </div>
+  </div>
+  <div class="card pad" style="margin-bottom:18px">
+    <div class="sect-t"><h2>Par membre</h2><span>du score le plus bas au plus haut</span></div>
+    <table class="t"><thead><tr><th>Membre</th><th>Contrôles</th><th>Score moyen</th><th>Parfaits</th><th>⚠️</th><th>Erreurs les plus fréquentes</th><th>Dernier</th></tr></thead><tbody>
+    ${ms.map(x => { const a = Math.round(x.sum / x.n * 100); const top = Object.entries(x.pts).sort((a, b) => b[1] - a[1]).slice(0, 3); return `<tr class="click" data-mem="${esc(x.id)}"><td><b>${esc(x.name)}</b></td><td class="mono">${x.n}</td><td><span class="score ${a >= 90 ? "s-hi" : a >= 78 ? "s-mid" : "s-lo"}">${a} %</span></td><td class="mono">${x.perfect}</td><td class="mono" style="color:${x.crit ? "var(--err)" : "inherit"}">${x.crit}</td><td>${top.map(([k, c]) => { const [t, id] = k.split(":"); return `<span class="tag">${esc(pointLabel(t, id))} ×${c}</span>`; }).join(" ") || '<span style="color:var(--mute)">aucune</span>'}</td><td>${esc(fmtDate(x.last))}</td></tr>`; }).join("")}
+    </tbody></table>
+  </div>
+  ${heatmap(ms, ps)}`}`;
+  m.querySelectorAll("[data-p]").forEach(b => b.onclick = () => { f.period = b.dataset.p; renderDash(m); });
+  const dt = $("#d_type"); if (dt) dt.onchange = e => { f.type = e.target.value; renderDash(m); };
+  const dm = $("#d_member"); if (dm) dm.onchange = e => { f.member = e.target.value; renderDash(m); };
+  const df = $("#d_from"); if (df) df.onchange = e => { f.from = e.target.value; renderDash(m); };
+  const dto = $("#d_to"); if (dto) dto.onchange = e => { f.to = e.target.value; renderDash(m); };
+  $("#refreshBtn").onclick = async () => { S.loaded = false; render(); await loadRecords(); renderWeek(); render(); };
+  const rb = $("#reportBtn"); if (rb) rb.onclick = () => copyReport(recs, ps, ms, al);
+  m.querySelectorAll(".rk").forEach(b => b.onclick = () => { const p = ps.find(x => x.key === b.dataset.k); if (p) openOccurrences(p); });
+  m.querySelectorAll("[data-mem]").forEach(tr => tr.onclick = () => { f.member = tr.dataset.mem; renderDash(m); window.scrollTo(0, 0); });
+}
+function heatmap(ms, ps) {
+  const cols = ps.slice(0, 14); if (!cols.length || ms.length < 1) return "";
+  const max = Math.max(1, ...ms.flatMap(m => cols.map(c => m.pts[c.key] || 0)));
+  return `<div class="card pad heat"><div class="sect-t"><h2>Carte des erreurs</h2><span>membre × point</span></div><table><tr><th></th>${cols.map(c => `<th class="v">${esc(c.label)}</th>`).join("")}</tr>
+  ${ms.map(m => `<tr><th>${esc(m.name)}</th>${cols.map(c => { const v = m.pts[c.key] || 0; const a = v / max; return `<td class="c" style="background:${v ? `rgba(217,71,43,${.15 + a * .75})` : "var(--paper)"};color:${a > .5 ? "#fff" : "var(--ink)"}">${v || ""}</td>`; }).join("")}</tr>`).join("")}</table></div>`;
+}
+function trendSvg() {
+  const f = S.dash; const weeks = [];
+  const s0 = startOfWeek();
+  for (let i = 11; i >= 0; i--) { const a = new Date(s0); a.setDate(a.getDate() - 7 * i); const b = new Date(a); b.setDate(b.getDate() + 6); weeks.push([ds(a), ds(b)]); }
+  const data = weeks.map(([a, b]) => { const r = S.records.filter(x => x.date >= a && x.date <= b && (f.type === "all" || x.type === f.type) && (f.member === "all" || x.memberId === f.member)); return { a, n: r.length, avg: r.length ? r.reduce((s, x) => s + x.score / x.total, 0) / r.length : null }; });
+  const W = 380, H = 150, pl = 26, pb = 22, bw = (W - pl) / 12;
+  const y = v => H - pb - (v - .5) / .5 * (H - pb - 10);
+  let s = `<svg viewBox="0 0 ${W} ${H}" width="100%">`;
+  [.5, .75, 1].forEach(v => s += `<line x1="${pl}" x2="${W}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-dasharray="3 3"/><text x="0" y="${y(v) + 3}">${v * 100}%</text>`);
+  data.forEach((d, i) => {
+    const x = pl + i * bw + 4;
+    if (d.avg !== null) { const v = Math.max(.5, d.avg); const col = d.avg >= .9 ? "var(--ok)" : d.avg >= .78 ? "var(--warn)" : "var(--err)"; s += `<rect x="${x}" y="${y(v)}" width="${bw - 8}" height="${H - pb - y(v)}" rx="4" fill="${col}" opacity=".85"><title>${fmtDate(d.a)} : ${Math.round(d.avg * 100)} % (${d.n} contrôles)</title></rect><text x="${x + (bw - 8) / 2}" y="${y(v) - 4}" text-anchor="middle">${d.n}</text>`; }
+    if (i % 3 === 0) s += `<text x="${x}" y="${H - 6}">${d.a.slice(8, 10)}/${d.a.slice(5, 7)}</text>`;
+  });
+  return s + `</svg>`;
+}
+function openOccurrences(p) {
+  const ov = document.createElement("div"); ov.className = "ov";
+  ov.innerHTML = `<div class="drawer"><div class="row" style="justify-content:space-between"><span class="tag">${esc(S.cfg.types[p.type]?.label || p.type)}</span><button class="iconb" id="x">✕</button></div>
+  <h2 style="margin-top:10px">${esc(p.label)}${p.crit ? " ⚠️" : ""}</h2>
+  <div style="color:var(--mute)">${p.err} erreur${p.err > 1 ? "s" : ""} sur ${p.appl} contrôle${p.appl > 1 ? "s" : ""} où le point s'applique (${pct(p.err, p.appl)} %)</div>
+  <div style="margin-top:18px">${p.occ.map(r => `<div class="res"><span class="st err">${esc(fmtDate(r.date))}</span><div style="flex:1"><b>${esc(r.memberName)}</b> · ${esc(r.clientId)} ${esc(r.clientName)}<br><span style="color:var(--ink2)">${esc(r.notes[p.id] || "")}</span></div><a href="${esc(r.url)}" target="_blank" rel="noopener" style="font-size:13px">Asana ↗</a></div>`).join("")}</div></div>`;
+  document.body.appendChild(ov);
+  ov.onclick = e => { if (e.target === ov) ov.remove(); };
+  $("#x", ov).onclick = () => ov.remove();
+}
+function copyReport(recs, ps, ms, al) {
+  const f = S.dash; const lbl = PERIODS.find(p => p[0] === f.period)[1];
+  const n = recs.length; const avg = n ? Math.round(recs.reduce((s, r) => s + r.score / r.total, 0) / n * 100) : 0;
+  let t = `Rapport contrôle de qualité (${lbl.toLowerCase()})\n\n`;
+  t += `Contrôles effectués : ${n}\nScore moyen : ${avg} %\nContrôles parfaits : ${recs.filter(r => r.score === r.total).length}\nPoints critiques échoués : ${recs.reduce((s, r) => s + (r.critical || []).length, 0)}\n\n`;
+  t += `Erreurs les plus fréquentes :\n` + (ps.slice(0, 5).map((p, i) => `${i + 1}. ${p.label} : ${p.err} fois (${pct(p.err, p.appl)} %)`).join("\n") || "Aucune") + "\n\n";
+  t += `Par membre :\n` + ms.map(m => `- ${m.name} : ${m.n} contrôle(s), moyenne ${Math.round(m.sum / m.n * 100)} %`).join("\n") + "\n";
+  if (al.filter(a => a.lvl !== "b").length) t += `\nÀ intervenir :\n` + al.filter(a => a.lvl !== "b").map(a => `- ${a.m} : ${a.t} (${a.tag.toLowerCase()})`).join("\n") + "\n";
+  navigator.clipboard.writeText(t).then(() => toast("Rapport copié : colle-le dans ta tâche de rapport hebdo."), () => toast("Copie impossible dans ce navigateur."));
+}
+
+/* =====================================================================
+   HISTORIQUE
+   ===================================================================== */
+function renderHist(m) {
+  const h = S.hist; const q = h.q.trim().toLowerCase();
+  const recs = S.records.filter(r => (h.type === "all" || r.type === h.type) && (h.member === "all" || r.memberId === h.member) &&
+    (!q || `${r.clientId} ${r.clientName} ${r.memberName} ${r.controllerName}`.toLowerCase().includes(q)));
+  m.innerHTML = `<div class="head"><div><h1>Historique</h1><p>${S.records.length} contrôle${S.records.length > 1 ? "s" : ""} enregistrés. Chaque ligne est aussi une tâche dans Asana.</p></div>
+    <a class="btn ghost sm" href="https://app.asana.com/1/1201965898308725/project/${PROJECT}" target="_blank" rel="noopener">Ouvrir le projet Asana ↗</a></div>
+  <div class="filters"><input class="inp sm" id="h_q" placeholder="Rechercher un client, un membre…" value="${esc(h.q)}" style="min-width:260px">
+    <select class="inp sm" id="h_type"><option value="all">Tous les types</option>${Object.keys(S.cfg.types).map(k => `<option value="${k}" ${h.type === k ? "selected" : ""}>${esc(S.cfg.types[k].label)}</option>`).join("")}</select>
+    <select class="inp sm" id="h_member"><option value="all">Toute l'équipe</option>${S.cfg.members.map(x => `<option value="${esc(x.id)}" ${h.member === x.id ? "selected" : ""}>${esc(x.name)}</option>`).join("")}</select></div>
+  <div class="card">${recs.length ? `<table class="t"><thead><tr><th>Date</th><th>Client</th><th>Type</th><th>Réalisée par</th><th>Score</th><th>Erreurs</th><th>Contrôleur</th></tr></thead><tbody>
+  ${recs.map(r => { const errs = Object.keys(r.results).filter(k => r.results[k] === "err"); return `<tr class="click" data-g="${esc(r.gid)}"><td class="mono">${esc(fmtDate(r.date))}</td><td><b>${esc(r.clientName)}</b> <span class="mono" style="color:var(--mute)">${esc(r.clientId)}</span></td><td>${esc(S.cfg.types[r.type]?.label || r.type)}</td><td>${esc(r.memberName)}</td><td><span class="score ${scoreClass(r.score, r.total)}">${r.score}/${r.total}</span>${(r.critical || []).length ? " ⚠️" : ""}</td><td style="max-width:280px">${errs.slice(0, 3).map(k => `<span class="tag">${esc(r.labels[k] || k)}</span>`).join(" ")}${errs.length > 3 ? ` <span class="tag">+${errs.length - 3}</span>` : ""}</td><td style="color:var(--mute)">${esc(r.controllerName)}</td></tr>`; }).join("")}
+  </tbody></table>` : `<div class="empty"><b>Aucun contrôle</b>${S.records.length ? "Aucun résultat pour cette recherche." : "Le premier contrôle fait avec l'outil apparaîtra ici."}</div>`}</div>`;
+  const hq = $("#h_q"); hq.oninput = e => { h.q = e.target.value; const pos = e.target.selectionStart; renderHist(m); const n = $("#h_q"); n.focus(); n.setSelectionRange(pos, pos); };
+  $("#h_type").onchange = e => { h.type = e.target.value; renderHist(m); };
+  $("#h_member").onchange = e => { h.member = e.target.value; renderHist(m); };
+  m.querySelectorAll("[data-g]").forEach(tr => tr.onclick = () => openRecord(S.records.find(r => r.gid === tr.dataset.g)));
+}
+function openRecord(r) {
+  if (!r) return;
+  const canEdit = S.isAdmin || r.controllerGid === S.me.gid;
+  const ov = document.createElement("div"); ov.className = "ov";
+  const ids = Object.keys(r.results);
+  ov.innerHTML = `<div class="drawer"><div class="row" style="justify-content:space-between"><span class="tag">${esc(S.cfg.types[r.type]?.label || r.type)}</span><button class="iconb" id="x">✕</button></div>
+  <div class="ring" style="margin-top:14px">${ring(r.score, r.total, 84)}<div><h2>${esc(r.clientName)}</h2><div style="color:var(--mute)">${esc(r.clientId)} · ${r.score}/${r.total}</div></div></div>
+  <dl class="kv"><dt>Réalisée par</dt><dd>${esc(r.memberName)}</dd><dt>Contrôle fait par</dt><dd>${esc(r.controllerName)}</dd><dt>Date</dt><dd>${esc(fmtDate(r.date))}</dd>
+  ${r.link ? `<dt>Fiche</dt><dd>${/^https:\/\//.test(r.link) ? `<a href="${esc(r.link)}" target="_blank" rel="noopener">${esc(r.link)}</a>` : esc(r.link)}</dd>` : ""}
+  ${r.comment ? `<dt>Commentaire</dt><dd>${esc(r.comment)}</dd>` : ""}</dl>
+  <ul class="dec">${decisions(r).map(d => `<li><span class="dot" style="background:${d.c}"></span><span>${esc(d.t)}</span></li>`).join("")}</ul>
+  <div>${ids.sort((a, b) => ({ err: 0, na: 1, ok: 2 }[r.results[a]] - { err: 0, na: 1, ok: 2 }[r.results[b]])).map(k => `<div class="res"><span class="st ${r.results[k]}">${{ ok: "Conforme", err: "Erreur", na: "N/A" }[r.results[k]]}</span><div><b>${esc(r.labels[k] || k)}</b>${(r.critical || []).includes(k) ? " ⚠️" : ""}${r.notes[k] ? `<br><span style="color:var(--ink2)">${esc(r.notes[k])}</span>` : ""}</div></div>`).join("")}</div>
+  <div class="row" style="margin-top:22px"><a class="btn ghost sm" href="${esc(r.url)}" target="_blank" rel="noopener">Ouvrir dans Asana ↗</a>
+  ${r.correctionGid ? `<a class="btn ghost sm" href="https://app.asana.com/0/0/${esc(r.correctionGid)}/f" target="_blank" rel="noopener">Tâche de correction ↗</a>` : ""}
+  ${canEdit ? `<button class="btn sm" id="editR">Modifier</button>` : ""}
+  ${S.isAdmin ? `<button class="btn danger sm" id="delR">Supprimer</button>` : ""}</div></div>`;
+  document.body.appendChild(ov);
+  ov.onclick = e => { if (e.target === ov) ov.remove(); };
+  $("#x", ov).onclick = () => ov.remove();
+  const ed = $("#editR", ov); if (ed) ed.onclick = () => {
+    ov.remove();
+    const f = newForm(r.type, { clientId: r.clientId, clientName: r.clientName, link: r.link || "", memberId: r.memberId, date: r.date, comment: r.comment || "", editGid: r.gid });
+    Object.keys(f.results).forEach(k => { if (r.results[k]) f.results[k] = r.results[k]; });
+    f.notes = Object.assign({}, r.notes);
+    S.form = f; go("new");
+  };
+  const dl = $("#delR", ov); if (dl) dl.onclick = async () => {
+    if (!confirm(`Supprimer définitivement le contrôle de « ${r.clientName} » ? La tâche Asana sera aussi supprimée (corbeille Asana).`)) return;
+    try { await api("DELETE", `/tasks/${r.gid}`); S.records = S.records.filter(x => x.gid !== r.gid); ov.remove(); renderWeek(); render(); toast("Contrôle supprimé."); }
+    catch (e) { toast("Erreur : " + e.message, 5000); }
+  };
+}
+
+/* =====================================================================
+   CONFIGURATION (admin)
+   ===================================================================== */
+let D = null; let cfgType = "opti";
+async function ensureTeamUsers() {
+  if (S.teamUsers) return;
+  try { S.teamUsers = (await getAll(`/teams/${TEAM}/users?opt_fields=name,email`)).sort((a, b) => a.name.localeCompare(b.name)); }
+  catch (e) { S.teamUsers = []; }
+}
+function userOpts(sel, empty = "Aucun") {
+  return `<option value="">${empty}</option>` + (S.teamUsers || []).map(u => `<option value="${esc(u.gid)}" ${u.gid === sel ? "selected" : ""}>${esc(u.name)}</option>`).join("");
+}
+async function renderCfg(m) {
+  if (!S.isAdmin) return go("new");
+  if (!D) D = clone(S.cfg);
+  if (!S.teamUsers) { m.innerHTML = '<div class="loading"><div class="spin d"></div>Chargement de l\'équipe…</div>'; await ensureTeamUsers(); }
+  const pts = D.checklists[cfgType];
+  m.innerHTML = `<div class="head"><div><h1>Configuration</h1><p>Les changements s'appliquent aux prochains contrôles. L'historique garde les points tels qu'ils étaient.</p></div>
+    <div class="row"><button class="btn ghost" id="resetCfg">Annuler les changements</button><button class="btn" id="saveCfg">Enregistrer</button></div></div>
+
+  <div class="card pad cfgsec">
+    <div class="row" style="justify-content:space-between"><div><h2>Checklists</h2><div class="sub">Renomme, réordonne, marque critique (⚠️), ou désactive un point. Un point désactivé reste dans l'historique.</div></div>
+    <div class="typesw">${Object.keys(D.types).map(k => `<button data-ct="${k}" class="${cfgType === k ? "on" : ""}">${esc(D.types[k].label)} <span class="mono" style="opacity:.6">${D.checklists[k].filter(p => p.active !== false).length}</span></button>`).join("")}</div></div>
+    <div>${pts.map((p, i) => `<div class="cfg-pt ${p.active === false ? "off" : ""}" data-i="${i}">
+      <div class="mono" style="color:var(--mute);padding-top:10px">${String(i + 1).padStart(2, "0")}</div>
+      <input class="inp" data-f="label" value="${esc(p.label)}">
+      <textarea class="inp" data-f="desc" rows="2">${esc(p.desc || "")}</textarea>
+      <div class="ctrl">
+        <label class="check" style="margin:0"><input type="checkbox" data-f="critical" ${p.critical ? "checked" : ""}> ⚠️ Critique</label>
+        <label class="check" style="margin:0"><input type="checkbox" data-f="active" ${p.active !== false ? "checked" : ""}> Actif</label>
+        <select class="inp sm" data-f="notify" title="Personne notifiée si ce point échoue" style="max-width:150px">${userOpts(p.notify || "", "Notifier : personne")}</select>
+        <div class="row" style="gap:4px"><button class="iconb" data-mv="-1" title="Monter">↑</button><button class="iconb" data-mv="1" title="Descendre">↓</button></div>
+      </div></div>`).join("")}</div>
+    <button class="btn ghost sm" id="addPt" style="margin-top:12px">＋ Ajouter un point</button>
+  </div>
+
+  <div class="card pad cfgsec"><h2>Gestionnaires évalués</h2><div class="sub">Le compte Asana lié sert à assigner automatiquement la tâche de correction.</div>
+    <table class="t"><thead><tr><th>Nom affiché</th><th>Compte Asana</th><th>Actif</th></tr></thead><tbody>
+    ${D.members.map((x, i) => `<tr data-mi="${i}"><td><input class="inp sm" data-m="name" value="${esc(x.name)}" style="width:100%"></td><td><select class="inp sm" data-m="gid">${userOpts(x.gid, "Aucun compte")}</select></td><td><input type="checkbox" data-m="active" ${x.active !== false ? "checked" : ""}></td></tr>`).join("")}
+    </tbody></table><button class="btn ghost sm" id="addMem" style="margin-top:12px">＋ Ajouter un membre</button></div>
+
+  <div class="card pad cfgsec"><h2>Accès et règles</h2><div class="sub">Toute personne membre du projet Asana peut se connecter et faire des contrôles. Les administrateurs voient en plus la configuration, le rapport et peuvent supprimer.</div>
+    <div class="field"><label>Administrateurs</label><div class="row">${(S.teamUsers || []).map(u => `<label class="chip ${D.admins.includes(u.gid) ? "on" : ""}" style="cursor:pointer"><input type="checkbox" data-adm="${esc(u.gid)}" ${D.admins.includes(u.gid) ? "checked" : ""} style="display:none">${esc(u.name)}</label>`).join("")}</div></div>
+    <div class="meta" style="grid-template-columns:repeat(3,1fr)">
+      <div class="field"><label>Superviseur tagué</label><select class="inp" id="c_sup">${userOpts(D.supervisorGid)}</select></div>
+      <div class="field"><label>Feedback constructif par</label><input class="inp" id="c_coach" value="${esc(D.coachName)}"></div>
+      <div class="field"><label>Objectif hebdo par contrôleur</label><input class="inp" type="number" id="c_week" value="${D.weeklyTarget}"></div>
+      ${Object.keys(D.types).map(k => `<div class="field"><label>${esc(D.types[k].label)} : taguer le superviseur si note ≤</label><input class="inp" type="number" data-th="${k}" value="${D.types[k].supAtOrBelow}"></div>`).join("")}
+      <div class="field"><label>Même erreur : avertissement verbal à</label><input class="inp" type="number" id="c_verbal" value="${D.repeat.verbal}"></div>
+      <div class="field"><label>Même erreur : avertissement écrit à</label><input class="inp" type="number" id="c_written" value="${D.repeat.written}"></div>
+      <div class="field"><label>Rencontre bilan tous les X contrôles</label><input class="inp" type="number" id="c_bilan" value="${D.bilanEvery}"></div>
+      <div class="field"><label>Délai de correction (heures)</label><input class="inp" type="number" id="c_hours" value="${D.correction.hours}"></div>
+      <div class="field"><label>Projet Asana des corrections (GID)</label><input class="inp mono" id="c_cproj" value="${esc(D.correction.projectGid)}"></div>
+      <div class="field"><label>Section des corrections (GID, optionnel)</label><input class="inp mono" id="c_csec" value="${esc(D.correction.sectionGid)}"></div>
+    </div>
+    <div style="font-size:13px;color:var(--mute)">Par défaut : projet « Optimisations à venir - DPC », section « Demande de modifications ».</div>
+  </div>`;
+  // checklists
+  m.querySelectorAll("[data-ct]").forEach(b => b.onclick = () => { cfgType = b.dataset.ct; renderCfg(m); });
+  m.querySelectorAll(".cfg-pt").forEach(row => {
+    const p = pts[+row.dataset.i];
+    row.querySelectorAll("[data-f]").forEach(el => el.onchange = el.oninput = () => {
+      const k = el.dataset.f;
+      if (k === "critical") p.critical = el.checked; else if (k === "active") { p.active = el.checked; row.classList.toggle("off", !el.checked); }
+      else if (k === "notify") { if (el.value) p.notify = el.value; else delete p.notify; } else p[k] = el.value;
+    });
+    row.querySelectorAll("[data-mv]").forEach(b => b.onclick = () => { const i = +row.dataset.i, j = i + +b.dataset.mv; if (j < 0 || j >= pts.length) return; [pts[i], pts[j]] = [pts[j], pts[i]]; renderCfg(m); });
+  });
+  $("#addPt").onclick = () => { pts.push({ id: "p_" + uid(), label: "Nouveau point", desc: "" }); renderCfg(m); };
+  // members
+  m.querySelectorAll("[data-mi]").forEach(tr => { const x = D.members[+tr.dataset.mi]; tr.querySelectorAll("[data-m]").forEach(el => el.onchange = el.oninput = () => { const k = el.dataset.m; x[k] = k === "active" ? el.checked : el.value; }); });
+  $("#addMem").onclick = () => { D.members.push({ id: "m_" + uid(), name: "", gid: "", active: true }); renderCfg(m); };
+  // admins & rules
+  m.querySelectorAll("[data-adm]").forEach(cb => cb.onchange = () => { const g = cb.dataset.adm; D.admins = cb.checked ? [...new Set([...D.admins, g])] : D.admins.filter(x => x !== g); cb.parentElement.classList.toggle("on", cb.checked); });
+  const num = (id, fn) => $(id).oninput = e => fn(+e.target.value);
+  $("#c_sup").onchange = e => D.supervisorGid = e.target.value;
+  $("#c_coach").oninput = e => D.coachName = e.target.value;
+  num("#c_week", v => D.weeklyTarget = v); num("#c_verbal", v => D.repeat.verbal = v); num("#c_written", v => D.repeat.written = v);
+  num("#c_bilan", v => D.bilanEvery = v); num("#c_hours", v => D.correction.hours = v);
+  $("#c_cproj").oninput = e => D.correction.projectGid = e.target.value.trim();
+  $("#c_csec").oninput = e => D.correction.sectionGid = e.target.value.trim();
+  m.querySelectorAll("[data-th]").forEach(el => el.oninput = () => D.types[el.dataset.th].supAtOrBelow = +el.value);
+  $("#resetCfg").onclick = () => { D = clone(S.cfg); renderCfg(m); };
+  $("#saveCfg").onclick = async () => {
+    if (!D.admins.includes(S.me.gid) && !confirm("Tu te retires des administrateurs. Continuer ?")) return;
+    D.members = D.members.filter(x => x.name.trim());
+    const b = $("#saveCfg"); b.disabled = true; b.innerHTML = '<div class="spin"></div>Enregistrement…';
+    try { await saveConfig(clone(D)); S.isAdmin = S.cfg.admins.includes(S.me.gid); toast("Configuration enregistrée."); S.form = null; D = null; if (!S.isAdmin) location.reload(); else renderCfg(m); }
+    catch (e) { toast("Erreur : " + e.message, 5000); b.disabled = false; b.textContent = "Enregistrer"; }
+  };
+}
+
+boot();
+</script>
+</body>
+</html>
