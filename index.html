@@ -188,6 +188,8 @@ table.t tr.click:hover td{background:var(--paper)}
 .cfgsec h2{font-size:19px;margin-bottom:4px}
 .cfgsec .sub{color:var(--mute);font-size:13px;margin-bottom:14px}
 
+.testbar{position:sticky;top:0;z-index:20;display:flex;gap:14px;justify-content:space-between;align-items:center;flex-wrap:wrap;background:var(--warnbg);border-bottom:1.5px solid #EBC86B;color:#5E4300;padding:10px 38px;font-size:14px}
+.asana-body h2{font-size:15px;margin:12px 0 4px}.asana-body ul{margin:4px 0;padding-left:20px}
 .trend svg text{font-family:"IBM Plex Mono";font-size:10px;fill:var(--mute)}
 
 @media (max-width:1100px){
@@ -218,7 +220,15 @@ table.t tr.click:hover td{background:var(--paper)}
     </div>
     <p>Un contrôle se fait en une seule page. Les résultats sont enregistrés dans Asana, les corrections sont créées et assignées automatiquement, et les erreurs qui reviennent ressortent toutes seules.</p>
   </div>
-  <div class="form">
+  <div class="form hide" id="testLogin">
+    <span class="pill v" style="width:fit-content;margin-bottom:14px">Mode test</span>
+    <h2>Essaie l'outil sans rien envoyer</h2>
+    <div style="color:var(--mute);margin-bottom:18px">Aucun jeton Asana n'est demandé et rien n'est créé dans Asana. Les contrôles d'essai restent dans ce navigateur, et tu peux voir l'aperçu exact de ce qui serait envoyé.</div>
+    <div class="field"><label>Entrer en tant que</label>
+      <select class="inp" id="testRole"><option value="admin">Samuel (administrateur)</option><option value="ctrl">Gougoux (contrôleur)</option></select></div>
+    <button class="btn" id="testBtn" style="width:100%">Entrer en mode test</button>
+  </div>
+  <div class="form" id="realLogin">
     <h2>Connexion</h2>
     <div style="color:var(--mute)">Tu te connectes avec ton compte Asana, une seule fois par ordinateur.</div>
     <ol class="steps">
@@ -247,7 +257,7 @@ table.t tr.click:hover td{background:var(--paper)}
     <div class="week" id="weekBox"></div>
     <div class="me" id="meBox"></div>
   </nav>
-  <main id="main"></main>
+  <div style="min-width:0"><div id="testbarBox"></div><main id="main"></main></div>
 </section>
 
 <div id="boot" class="loading"><div class="spin d"></div>Chargement…</div>
@@ -258,6 +268,9 @@ table.t tr.click:hover td{background:var(--paper)}
    Contrôle de qualité 2.0 · DPC RDPQ
    Base de données : projet Asana « Contrôle de qualité 2.0 - Résultats (outil) »
    ===================================================================== */
+/* MODE TEST : tant que c'est true, AUCUN appel n'est fait à Asana.
+   Tout est simulé et gardé dans le navigateur de la personne. */
+const TEST_MODE = true;
 const API = "https://app.asana.com/api/1.0";
 const PROJECT = "1220908332416301";
 const SECTIONS = { opti: "1220908332622827", reopt: "1220908200946943", config: "1220908314754948" };
@@ -354,8 +367,110 @@ function toast(t, ms = 2600) { const d = document.createElement("div"); d.classN
 function startOfWeek(d = new Date()) { const x = new Date(d); x.setHours(0, 0, 0, 0); const day = (x.getDay() + 6) % 7; x.setDate(x.getDate() - day); return x; }
 const ds = (d) => d.toLocaleDateString("en-CA");
 
+/* ---------------- MODE TEST : faux Asana local ---------------- */
+const TEAM_USERS = [
+  ["1207234609671782", "Amine Mouakher"], ["1202110773064350", "Catherine"], ["1209272022005249", "Fatima Zohra EL Moukhtari"],
+  ["1209466718805972", "Fatima Zohra Roky"], ["1202700020263869", "Gougoux"], ["1207660726566651", "Ikhlass"], ["1210110829307917", "Imane Mzerd"],
+  ["1218879663216145", "Rania Wadi"], ["1207234608501413", "Redwane Mssiaidi"], ["1207833924170121", "Rehab Badreddine"],
+  ["1218862989588207", "Salma Mouthar"], ["1202700020089408", "Samuel Laroche"]
+].map(([gid, name]) => ({ gid, name }));
+const TEST_ROLES = { admin: { gid: USERS.samuel, name: "Samuel Laroche", email: "s.laroche@rdpq.ca" }, ctrl: { gid: USERS.gougoux, name: "Gougoux", email: "c.gougoux@rdpq.ca" } };
+const PROJECT_NAMES = { [PROJECT]: "Contrôle de qualité 2.0 - Résultats (outil)", "1204865961692265": "Optimisations à venir - DPC" };
+const SECTION_NAMES = { [SECTIONS.opti]: "Optimisation", [SECTIONS.reopt]: "Réoptimisation", [SECTIONS.config]: "⚙️ Configuration", "1210526344657080": "Demande de modifications" };
+let TDB = null;
+function tdbLoad() { try { TDB = JSON.parse(localStorage.getItem("qc_test_db")); } catch (e) { } if (!TDB || !TDB.tasks) TDB = { tasks: {}, stories: [], n: 1 }; }
+function tdbSave() { try { localStorage.setItem("qc_test_db", JSON.stringify(TDB)); } catch (e) { } }
+function htmlToText(h) {
+  return String(h || "").replace(/<br\/>/g, "\n").replace(/<\/(li|h1|h2)>/g, "\n").replace(/<[^>]+>/g, "")
+    .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, "&");
+}
+async function mockApi(method, path, body) {
+  await new Promise(r => setTimeout(r, 80));
+  if (!TDB) tdbLoad();
+  const p = path.split("?")[0]; const R = (data) => ({ data });
+  let m;
+  if (p === "/users/me") return R(S.me);
+  if (p === `/projects/${PROJECT}`) return R({ gid: PROJECT, name: PROJECT_NAMES[PROJECT] });
+  if (p.startsWith("/teams/")) return R(TEAM_USERS);
+  if ((m = p.match(/^\/sections\/(\d+)\/tasks$/))) return R(Object.entries(TDB.tasks).filter(([, t]) => t.section === m[1]).map(([gid, t]) => ({ gid, name: t.name, notes: t.notes })));
+  if (p === `/projects/${PROJECT}/tasks`) return R(Object.entries(TDB.tasks).filter(([, t]) => t.project === PROJECT).map(([gid, t]) => ({ gid, name: t.name, notes: t.notes, permalink_url: "#test", created_at: t.created })));
+  if (p === "/tasks" && method === "POST") {
+    const gid = "T" + (TDB.n++);
+    TDB.tasks[gid] = { name: body.name, html: body.html_notes || "", notes: htmlToText(body.html_notes), project: (body.projects || [])[0], section: null, assignee: body.assignee || "", due_at: body.due_at || "", followers: body.followers || [], created: new Date().toISOString() };
+    tdbSave(); return R({ gid });
+  }
+  if ((m = p.match(/^\/sections\/(\d+)\/addTask$/))) { if (TDB.tasks[body.task]) TDB.tasks[body.task].section = m[1]; tdbSave(); return R({}); }
+  if ((m = p.match(/^\/tasks\/(\w+)\/stories$/))) { TDB.stories.push({ task: m[1], html: body.html_text, by: S.me.gid, at: new Date().toISOString() }); tdbSave(); return R({}); }
+  if ((m = p.match(/^\/tasks\/(\w+)$/))) {
+    const t = TDB.tasks[m[1]];
+    if (method === "PUT") { if (!t) throw new Error("Tâche introuvable"); if (body.html_notes !== undefined) { t.html = body.html_notes; t.notes = htmlToText(body.html_notes); } if (body.name) t.name = body.name; tdbSave(); return R({ gid: m[1] }); }
+    if (method === "DELETE") { delete TDB.tasks[m[1]]; TDB.stories = TDB.stories.filter(s => s.task !== m[1]); tdbSave(); return null; }
+    return R({ gid: m[1], permalink_url: "#test" });
+  }
+  throw new Error("Mode test : appel non simulé " + method + " " + p);
+}
+function nameOf(g) { const u = TEAM_USERS.find(x => x.gid === g); if (u) return "@" + u.name; const t = TDB?.tasks?.[g]; return t ? "« " + t.name + " »" : "[lien]"; }
+function renderAsanaHtml(h) {
+  return String(h || "").replace(/<pre>[\s\S]*?<\/pre>/, "").replace(/<em>Généré par[\s\S]*?<\/em>/, "").replace(/<hr\/>/g, "")
+    .replace(/<a data-asana-gid="(\w+)"\/>/g, (x, g) => `<b style="color:var(--accent)">${esc(nameOf(g))}</b>`).replace(/<\/?body>/g, "");
+}
+function previewAsana(gid) {
+  if (!TDB) tdbLoad();
+  const t = TDB.tasks[gid]; if (!t) return toast("Rien à afficher.");
+  const rec = S.records.find(r => r.gid === gid);
+  const corr = rec?.correctionGid ? TDB.tasks[rec.correctionGid] : null;
+  const block = (tk, title) => `<div class="card pad" style="margin-top:14px"><div class="tag" style="display:inline-block;margin-bottom:8px">${esc(title)}</div>
+    <h3 style="font-size:17px">${esc(tk.name)}</h3>
+    <dl class="kv" style="grid-template-columns:110px 1fr;margin:10px 0"><dt>Projet</dt><dd>${esc(PROJECT_NAMES[tk.project] || tk.project)}</dd><dt>Section</dt><dd>${esc(SECTION_NAMES[tk.section] || "—")}</dd>
+    ${tk.assignee ? `<dt>Assignée à</dt><dd>${esc(nameOf(tk.assignee))}</dd>` : ""}${tk.due_at ? `<dt>Échéance</dt><dd>${esc(new Date(tk.due_at).toLocaleString("fr-CA"))}</dd>` : ""}</dl>
+    <div style="font-size:14px;border-top:1px solid var(--line);padding-top:10px" class="asana-body">${renderAsanaHtml(tk.html)}</div></div>`;
+  const comments = TDB.stories.filter(s => s.task === gid);
+  const ov = document.createElement("div"); ov.className = "ov";
+  ov.innerHTML = `<div class="drawer"><div class="row" style="justify-content:space-between"><span class="pill v">Aperçu mode test</span><button class="iconb" id="x">✕</button></div>
+    <h2 style="margin-top:10px">Ce qui serait créé dans Asana</h2><div style="color:var(--mute)">En mode réel, ces éléments apparaîtraient tels quels dans Asana. Pour l'instant, rien n'a été envoyé.</div>
+    ${block(t, "Tâche du contrôle")}
+    ${comments.map(c => `<div class="card pad" style="margin-top:14px"><div class="tag" style="display:inline-block;margin-bottom:8px">Commentaire sur la tâche (par ${esc(nameOf(c.by))})</div><div style="font-size:14px">${renderAsanaHtml(c.html)}</div></div>`).join("")}
+    ${corr ? block(corr, "Tâche de correction") : ""}</div>`;
+  document.body.appendChild(ov);
+  ov.onclick = e => { if (e.target === ov) ov.remove(); };
+  $("#x", ov).onclick = () => ov.remove();
+}
+function asanaBtn(gid, url, label, cls = "btn ghost sm") {
+  if (TEST_MODE) return `<button class="${cls}" data-preview="${esc(gid)}">${esc(label.replace("Ouvrir dans Asana", "Voir l'aperçu Asana").replace("Asana ↗", "Aperçu"))}</button>`;
+  return `<a class="${cls}" href="${esc(url)}" target="_blank" rel="noopener">${esc(label)}</a>`;
+}
+document.addEventListener("click", e => { const b = e.target.closest("[data-preview]"); if (b) { e.preventDefault(); previewAsana(b.dataset.preview); } });
+
+function seedDemo(count = 24) {
+  if (!TDB) tdbLoad();
+  const weights = { services: .38, produits: .22, zone: .18, motscles: .16, banniere: .12, publications: .1, photos: .08, page411: .07, profil: .05, nap: .03, avis: .06, activite: .06, fermeture: .05, shortlink: .07 };
+  const notesTxt = { services: "Services proposés par Google laissés alors que le client ne les offre pas", produits: "Seulement 1 produit créé", zone: "Zone desservie modifiée sans validation", motscles: "Texte IA non relu, articles manquants", banniere: "Aucune photo du client dans la bannière", publications: "Publication générique, pas personnalisée", photos: "Logo pas en 400×400", page411: "Doublon dans les services de la page 411", profil: "Nom différent de Totem", nap: "Numéro de téléphone modifié", avis: "Mauvais type de réponse pour le forfait", activite: "Activité non entrée", fermeture: "Tâche encore ouverte dans Totem", shortlink: "Note absente dans Totem" };
+  const mems = S.cfg.members.filter(m => m.active !== false && m.id !== "gougoux");
+  const clients = ["Toiture Laurentides", "Plomberie Boréale", "Excavation Lièvre", "Clinique Physio Nord", "Peinture Pro-Teck", "Électrique Mont-Laurier", "Paysagement Vert-Rive", "Déneigement Express", "Avocats Tremblay", "Rénovation Héritage", "Ramonage du Nord", "Climatisation Air-Pur"];
+  for (let i = 0; i < count; i++) {
+    const type = Math.random() < .8 ? "opti" : "reopt";
+    const pts = checklist(type); const mem = mems[Math.floor(Math.random() * mems.length)];
+    const skill = mem.id === "rania" || mem.id === "salma" ? 1.6 : mem.id === "imane" ? .4 : 1;
+    const results = {}, notes = {}, labels = {};
+    pts.forEach(p => { labels[p.id] = p.label; const w = (weights[p.id] ?? .05) * skill; results[p.id] = Math.random() < w ? "err" : (p.id === "produits" && Math.random() < .1 ? "na" : "ok"); if (results[p.id] === "err") notes[p.id] = notesTxt[p.id] || "Point non conforme"; });
+    const d = new Date(); d.setDate(d.getDate() - Math.floor(Math.random() * 75));
+    const errs = pts.filter(p => results[p.id] === "err");
+    const rec = { v: 1, type, clientId: String(79000 + Math.floor(Math.random() * 700)), clientName: clients[Math.floor(Math.random() * clients.length)], link: "", memberId: mem.id, memberName: mem.name, memberGid: mem.gid, controllerGid: USERS.gougoux, controllerName: "Gougoux", date: ds(d), results, notes, labels, critical: errs.filter(p => p.critical).map(p => p.id), score: pts.length - errs.length, total: pts.length, comment: "", correctionGid: "", createdAt: d.toISOString(), demo: true };
+    const gid = "T" + (TDB.n++);
+    const html = recordNotes(rec);
+    TDB.tasks[gid] = { name: recordName(rec), html, notes: htmlToText(html), project: PROJECT, section: SECTIONS[type], created: rec.createdAt };
+  }
+  tdbSave();
+}
+function clearTestData() {
+  if (!TDB) tdbLoad();
+  for (const [g, t] of Object.entries(TDB.tasks)) if (t.section !== SECTIONS.config) delete TDB.tasks[g];
+  TDB.stories = []; tdbSave();
+}
+
 /* ---------------- Asana API ---------------- */
 async function api(method, path, body) {
+  if (TEST_MODE) return mockApi(method, path, body);
   const res = await fetch(API + path, {
     method,
     headers: { Authorization: "Bearer " + S.token, Accept: "application/json", ...(body ? { "Content-Type": "application/json" } : {}) },
@@ -502,9 +617,24 @@ async function login(token, remember) {
   await loadConfig();
   S.isAdmin = S.cfg.admins.includes(S.me.gid);
 }
-function logout() { localStorage.removeItem("qc_token"); sessionStorage.removeItem("qc_token"); location.reload(); }
+function logout() { try { localStorage.removeItem("qc_test_role"); } catch (e) { } localStorage.removeItem("qc_token"); sessionStorage.removeItem("qc_token"); location.reload(); }
 
+async function bootTest() {
+  $("#testLogin").classList.remove("hide"); $("#realLogin").classList.add("hide");
+  const enter = async (role) => {
+    S.token = "test"; S.me = TEST_ROLES[role] || TEST_ROLES.admin;
+    try { localStorage.setItem("qc_test_role", role); } catch (e) { }
+    tdbLoad(); await loadConfig(); S.isAdmin = S.cfg.admins.includes(S.me.gid);
+    $("#login").classList.add("hide"); await enterApp();
+  };
+  $("#testBtn").onclick = () => enter($("#testRole").value);
+  let saved = null; try { saved = localStorage.getItem("qc_test_role"); } catch (e) { }
+  $("#boot").classList.add("hide");
+  if (saved) return enter(saved);
+  $("#login").classList.remove("hide");
+}
 async function boot() {
+  if (TEST_MODE) return bootTest();
   const saved = localStorage.getItem("qc_token") || sessionStorage.getItem("qc_token");
   $("#boot").classList.add("hide");
   if (!saved) return showLogin();
@@ -533,6 +663,7 @@ async function enterApp() {
   $("#meBox").innerHTML = `<b>${esc(S.me.name)}</b>${esc(S.me.email || "")}<br><span class="role">${S.isAdmin ? "Administrateur" : "Contrôleur"}</span><div style="margin-top:10px"><button class="btn ghost sm" id="logoutBtn" style="color:#C9D1E3;border-color:rgba(255,255,255,.2)">Se déconnecter</button></div>`;
   $("#logoutBtn").onclick = logout;
   document.querySelectorAll(".navbtn").forEach(b => b.onclick = () => go(b.dataset.v));
+  if (TEST_MODE) { $("#testbarBox").innerHTML = testBanner(); bindTestBanner(); }
   go(S.isAdmin ? "dash" : "new");
   try { await loadRecords(); } catch (e) { toast("Impossible de charger les contrôles : " + e.message, 5000); S.loaded = true; }
   renderWeek();
@@ -550,6 +681,18 @@ function go(v) {
   if (v === "new" && !S.form) S.form = newForm("opti");
   render();
   window.scrollTo(0, 0);
+}
+function testBanner() {
+  if (!TEST_MODE) return "";
+  return `<div class="testbar"><div><b>Mode test.</b> Rien n'est envoyé à Asana : les contrôles restent dans ce navigateur. Les boutons « Aperçu » montrent exactement ce qui serait créé.</div>
+  <div class="row"><select class="inp sm" id="tb_role"><option value="admin" ${S.me.gid === USERS.samuel ? "selected" : ""}>Voir comme Samuel (admin)</option><option value="ctrl" ${S.me.gid === USERS.gougoux ? "selected" : ""}>Voir comme Gougoux (contrôleur)</option></select>
+  <button class="btn ghost sm" id="tb_seed">＋ 24 contrôles fictifs</button><button class="btn ghost sm" id="tb_clear">Vider les essais</button></div></div>`;
+}
+function bindTestBanner() {
+  if (!TEST_MODE) return;
+  const r = $("#tb_role"); if (r) r.onchange = e => { try { localStorage.setItem("qc_test_role", e.target.value); } catch (x) { } location.reload(); };
+  const s = $("#tb_seed"); if (s) s.onclick = async () => { seedDemo(24); await loadRecords(); renderWeek(); toast("24 contrôles fictifs ajoutés (Gougoux comme contrôleuse)."); if (S.view === "new") go("dash"); else render(); };
+  const c = $("#tb_clear"); if (c) c.onclick = async () => { clearTestData(); await loadRecords(); renderWeek(); toast("Données d'essai effacées."); render(); };
 }
 function render() {
   const m = $("#main");
@@ -757,7 +900,7 @@ function showSaved(rec, edited) {
     <ul class="dec" style="text-align:left;max-width:440px;margin:18px auto">${decisions(rec).map(d => `<li><span class="dot" style="background:${d.c}"></span><span>${esc(d.t)}</span></li>`).join("")}
     ${rec.correctionGid && !edited ? `<li><span class="dot" style="background:var(--ok)"></span><span>Tâche de correction créée et assignée.</span></li>` : ""}</ul>
     <div class="row" style="justify-content:center;margin-top:20px">
-      <a class="btn ghost" href="${esc(rec.url)}" target="_blank" rel="noopener">Ouvrir dans Asana</a>
+      ${asanaBtn(rec.gid, rec.url, "Ouvrir dans Asana", "btn ghost")}
       <button class="btn" id="againBtn">Nouveau contrôle</button>
     </div></div>`;
   $("#againBtn").onclick = () => go("new");
@@ -912,7 +1055,7 @@ function openOccurrences(p) {
   ov.innerHTML = `<div class="drawer"><div class="row" style="justify-content:space-between"><span class="tag">${esc(S.cfg.types[p.type]?.label || p.type)}</span><button class="iconb" id="x">✕</button></div>
   <h2 style="margin-top:10px">${esc(p.label)}${p.crit ? " ⚠️" : ""}</h2>
   <div style="color:var(--mute)">${p.err} erreur${p.err > 1 ? "s" : ""} sur ${p.appl} contrôle${p.appl > 1 ? "s" : ""} où le point s'applique (${pct(p.err, p.appl)} %)</div>
-  <div style="margin-top:18px">${p.occ.map(r => `<div class="res"><span class="st err">${esc(fmtDate(r.date))}</span><div style="flex:1"><b>${esc(r.memberName)}</b> · ${esc(r.clientId)} ${esc(r.clientName)}<br><span style="color:var(--ink2)">${esc(r.notes[p.id] || "")}</span></div><a href="${esc(r.url)}" target="_blank" rel="noopener" style="font-size:13px">Asana ↗</a></div>`).join("")}</div></div>`;
+  <div style="margin-top:18px">${p.occ.map(r => `<div class="res"><span class="st err">${esc(fmtDate(r.date))}</span><div style="flex:1"><b>${esc(r.memberName)}</b> · ${esc(r.clientId)} ${esc(r.clientName)}<br><span style="color:var(--ink2)">${esc(r.notes[p.id] || "")}</span></div>${asanaBtn(r.gid, r.url, "Asana ↗", "btn ghost sm")}</div>`).join("")}</div></div>`;
   document.body.appendChild(ov);
   ov.onclick = e => { if (e.target === ov) ov.remove(); };
   $("#x", ov).onclick = () => ov.remove();
@@ -935,8 +1078,8 @@ function renderHist(m) {
   const h = S.hist; const q = h.q.trim().toLowerCase();
   const recs = S.records.filter(r => (h.type === "all" || r.type === h.type) && (h.member === "all" || r.memberId === h.member) &&
     (!q || `${r.clientId} ${r.clientName} ${r.memberName} ${r.controllerName}`.toLowerCase().includes(q)));
-  m.innerHTML = `<div class="head"><div><h1>Historique</h1><p>${S.records.length} contrôle${S.records.length > 1 ? "s" : ""} enregistrés. Chaque ligne est aussi une tâche dans Asana.</p></div>
-    <a class="btn ghost sm" href="https://app.asana.com/1/1201965898308725/project/${PROJECT}" target="_blank" rel="noopener">Ouvrir le projet Asana ↗</a></div>
+  m.innerHTML = `<div class="head"><div><h1>Historique</h1><p>${S.records.length} contrôle${S.records.length > 1 ? "s" : ""} enregistrés.${TEST_MODE ? " Mode test : rien n'est dans Asana." : " Chaque ligne est aussi une tâche dans Asana."}</p></div>
+    ${TEST_MODE ? "" : `<a class="btn ghost sm" href="https://app.asana.com/1/1201965898308725/project/${PROJECT}" target="_blank" rel="noopener">Ouvrir le projet Asana ↗</a>`}</div>
   <div class="filters"><input class="inp sm" id="h_q" placeholder="Rechercher un client, un membre…" value="${esc(h.q)}" style="min-width:260px">
     <select class="inp sm" id="h_type"><option value="all">Tous les types</option>${Object.keys(S.cfg.types).map(k => `<option value="${k}" ${h.type === k ? "selected" : ""}>${esc(S.cfg.types[k].label)}</option>`).join("")}</select>
     <select class="inp sm" id="h_member"><option value="all">Toute l'équipe</option>${S.cfg.members.map(x => `<option value="${esc(x.id)}" ${h.member === x.id ? "selected" : ""}>${esc(x.name)}</option>`).join("")}</select></div>
@@ -960,8 +1103,8 @@ function openRecord(r) {
   ${r.comment ? `<dt>Commentaire</dt><dd>${esc(r.comment)}</dd>` : ""}</dl>
   <ul class="dec">${decisions(r).map(d => `<li><span class="dot" style="background:${d.c}"></span><span>${esc(d.t)}</span></li>`).join("")}</ul>
   <div>${ids.sort((a, b) => ({ err: 0, na: 1, ok: 2 }[r.results[a]] - { err: 0, na: 1, ok: 2 }[r.results[b]])).map(k => `<div class="res"><span class="st ${r.results[k]}">${{ ok: "Conforme", err: "Erreur", na: "N/A" }[r.results[k]]}</span><div><b>${esc(r.labels[k] || k)}</b>${(r.critical || []).includes(k) ? " ⚠️" : ""}${r.notes[k] ? `<br><span style="color:var(--ink2)">${esc(r.notes[k])}</span>` : ""}</div></div>`).join("")}</div>
-  <div class="row" style="margin-top:22px"><a class="btn ghost sm" href="${esc(r.url)}" target="_blank" rel="noopener">Ouvrir dans Asana ↗</a>
-  ${r.correctionGid ? `<a class="btn ghost sm" href="https://app.asana.com/0/0/${esc(r.correctionGid)}/f" target="_blank" rel="noopener">Tâche de correction ↗</a>` : ""}
+  <div class="row" style="margin-top:22px">${asanaBtn(r.gid, r.url, "Ouvrir dans Asana ↗")}
+  ${r.correctionGid && !TEST_MODE ? `<a class="btn ghost sm" href="https://app.asana.com/0/0/${esc(r.correctionGid)}/f" target="_blank" rel="noopener">Tâche de correction ↗</a>` : ""}
   ${canEdit ? `<button class="btn sm" id="editR">Modifier</button>` : ""}
   ${S.isAdmin ? `<button class="btn danger sm" id="delR">Supprimer</button>` : ""}</div></div>`;
   document.body.appendChild(ov);
