@@ -191,6 +191,13 @@ table.t tr.click:hover td{background:var(--paper)}
 
 .testbar{position:sticky;top:0;z-index:20;display:flex;gap:14px;justify-content:space-between;align-items:center;flex-wrap:wrap;background:var(--warnbg);border-bottom:1.5px solid #EBC86B;color:#5E4300;padding:10px 38px;font-size:14px}
 .asana-body h2{font-size:15px;margin:12px 0 4px}.asana-body ul{margin:4px 0;padding-left:20px}
+.wt{font-size:10px;font-weight:600;padding:1px 6px;border-radius:99px;margin-left:6px;vertical-align:1px;border:1px solid var(--line);color:var(--mute)}
+.wt.w3{border-color:#E9B4A6;color:#9B2A13}.wt.w1{opacity:.7}
+.coach{margin-top:16px;background:var(--accentbg);border-radius:12px;padding:12px 14px}
+.coach.ok{background:var(--okbg);color:#0F5C3A;font-size:14px}
+.coach-t{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#1C3BA8;margin-bottom:6px}
+.coach-i{display:flex;flex-direction:column;padding:7px 0;border-top:1px solid rgba(47,91,234,.15);font-size:14px}
+.coach-i:first-of-type{border-top:0}.coach-i span{color:var(--ink2);font-size:13px}
 .trend svg text{font-family:"IBM Plex Mono";font-size:10px;fill:var(--mute)}
 
 @media (max-width:1100px){
@@ -286,18 +293,11 @@ const USERS = {
 };
 
 const DEFAULT_CONFIG = {
-  version: 1,
+  version: 2,
   admins: [USERS.samuel, USERS.amine, USERS.catherine, USERS.redwane],
-  supervisorGid: USERS.samuel,
-  coachName: "Gougoux",
   weeklyTarget: 10,
-  repeat: { verbal: 2, written: 4 },
-  bilanEvery: 5,
-  correction: { hours: 24 },
-  types: {
-    opti: { label: "Optimisation", supAtOrBelow: 16 },
-    reopt: { label: "Réoptimisation", supAtOrBelow: 6 }
-  },
+  recurrence: 2,
+  types: { opti: { label: "Optimisation" }, reopt: { label: "Réoptimisation" } },
   members: [
     { id: "fatima1", name: "Fatima El Moukhtari", gid: "1209272022005249", active: true },
     { id: "fatima2", name: "Fatima Zohra Roky", gid: "1209466718805972", active: true },
@@ -309,51 +309,55 @@ const DEFAULT_CONFIG = {
     { id: "salma", name: "Salma Mouthar", gid: "1218862989588207", active: true },
     { id: "gougoux", name: "Gougoux", gid: USERS.gougoux, active: true }
   ],
+  /* w = poids du point : 1 mineur (administratif), 2 standard, 3 majeur (visibilité ou risque pour le client) */
   checklists: {
     opti: [
-      { id: "assign", label: "Tâche bien assignée", desc: "La tâche est assignée dans Asana et dans Totem au bon gestionnaire." },
-      { id: "banniere", label: "Bannière", desc: "Belle bannière. Si le client a de belles images, ce sont elles qu'on y retrouve. Doit contenir au moins une photo de la bibliothèque du client." },
-      { id: "page411", label: "Double check de la page 411", desc: "Pas de doublons dans les services, tous les liens fonctionnent, orthographe OK. Autre erreur sur la page 411 : capture avant correction, documenter ici et aviser Amine.", notify: USERS.amine },
-      { id: "cid", label: "CID et code magasin", desc: "CID copié et enregistré dans Totem, code magasin inscrit." },
-      { id: "captures", label: "Captures d'écran", desc: "Présentes dans Totem : accès, profil, produits (si existants), services, photos." },
-      { id: "profil", label: "Profil GBP", critical: true, desc: "Nom comme dans Totem (sinon justification d'un Spécialiste Google), catégorie et sous-catégories, description (nom + vertical + secteur), date d'ouverture conforme à Totem." },
-      { id: "nap", label: "Adresse et téléphone", critical: true, desc: "Aucune modification non autorisée." },
-      { id: "motscles", label: "Mots-clés", desc: "Bien intégrés. Textes générés par l'IA relus : articles ajoutés (massage pour enfants, mécanique de poids lourds)." },
-      { id: "web", label: "Site Web et réseaux sociaux", desc: "URL de la page 411 valide, réseaux sociaux vérifiés et ajoutés." },
-      { id: "zone", label: "Zone desservie", desc: "Inchangée, sauf correction validée par un Spécialiste Google." },
-      { id: "heures", label: "Heures d'ouverture", desc: "Conformes à Totem." },
-      { id: "attributs", label: "Attributs", desc: "Modes de paiement et planification ajoutés selon Totem." },
-      { id: "services", label: "Services GBP", desc: "Seulement les services offerts par le client, conformes à la page 411 / site web, au moins 5 descriptifs (sauf avocats, notaires et professionnels de la santé). Attention aux services proposés par Google." },
-      { id: "produits", label: "Produits GBP", desc: "3 produits pertinents créés. Pas de produits pour avocats, notaires et professionnels de la santé (mettre N/A)." },
-      { id: "reservations", label: "Réservations", desc: "Lien de rendez-vous ou de soumission ajouté." },
-      { id: "photos", label: "Photos", desc: "Photos du client ou génériques ajoutées, logo 400×400, couverture horizontale." },
-      { id: "publications", label: "Publications", desc: "1 mise à jour personnalisée ajoutée." },
-      { id: "analytics", label: "Analytics", desc: "GBP relié à Analytics, tagging effectué." },
-      { id: "shortlink", label: "Courriel short link et code QR", desc: "Note bien inscrite dans Totem." },
-      { id: "avis", label: "Type d'avis", desc: "Type de réponse conforme au forfait et aux demandes du client." },
-      { id: "activite", label: "Activité Totem", desc: "Activité bien entrée et conforme." },
-      { id: "fermeture", label: "Fermeture des tâches", desc: "Tâches bien fermées dans Totem et dans Asana." }
+      { id: "assign", w: 1, label: "Tâche bien assignée", desc: "La tâche est assignée dans Asana et dans Totem au bon gestionnaire.", tip: "Proposer de vérifier l'assignation Asana et Totem en tout premier, avant de commencer l'optimisation." },
+      { id: "banniere", w: 2, label: "Bannière", desc: "Belle bannière. Si le client a de belles images, ce sont elles qu'on y retrouve. Doit contenir au moins une photo de la bibliothèque du client.", tip: "Montrer côte à côte sa bannière et un bon exemple, puis rappeler d'aller d'abord voir la bibliothèque photo du client." },
+      { id: "page411", w: 2, label: "Double check de la page 411", desc: "Pas de doublons dans les services, tous les liens fonctionnent, orthographe OK. Autre erreur sur la page 411 : capture avant correction et documenter ici.", tip: "Relire la page 411 ensemble quelques minutes : doublons, liens, orthographe. Suggérer une relecture rapide comme dernière étape." },
+      { id: "cid", w: 1, label: "CID et code magasin", desc: "CID copié et enregistré dans Totem, code magasin inscrit.", tip: "Rappeler l'étape simplement et montrer où l'inscrire dans Totem. Souvent un oubli plus qu'une incompréhension." },
+      { id: "captures", w: 1, label: "Captures d'écran", desc: "Présentes dans Totem : accès, profil, produits (si existants), services, photos.", tip: "Expliquer à quoi servent les captures (preuve du travail, suivi client) et redonner la liste attendue." },
+      { id: "profil", w: 3, critical: true, label: "Profil GBP", desc: "Nom comme dans Totem (sinon justification d'un Spécialiste Google), catégorie et sous-catégories, description (nom + vertical + secteur), date d'ouverture conforme à Totem.", tip: "Comparer ensemble le profil et Totem, champ par champ. Expliquer l'impact d'un nom ou d'une catégorie erronés sur la fiche du client." },
+      { id: "nap", w: 3, critical: true, label: "Adresse et téléphone", desc: "Aucune modification non autorisée.", tip: "Expliquer calmement le risque (suspension de fiche, perte d'appels) et revoir la règle : aucune modification sans autorisation. Demander s'il y avait un doute au moment de le faire." },
+      { id: "motscles", w: 3, label: "Mots-clés", desc: "Bien intégrés. Textes générés par l'IA relus : articles ajoutés (massage pour enfants, mécanique de poids lourds).", tip: "Lire un de ses textes à voix haute avec la personne : les mots-clés sans articles sautent aux yeux. Montrer un texte bien intégré en exemple." },
+      { id: "web", w: 2, label: "Site Web et réseaux sociaux", desc: "URL de la page 411 valide, réseaux sociaux vérifiés et ajoutés.", tip: "Tester les liens ensemble et rappeler de chercher les réseaux sociaux du client avant de terminer." },
+      { id: "zone", w: 3, label: "Zone desservie", desc: "Inchangée, sauf correction validée par un Spécialiste Google.", tip: "Expliquer pourquoi la zone ne se modifie pas sans validation, et à qui s'adresser en cas de doute." },
+      { id: "heures", w: 2, label: "Heures d'ouverture", desc: "Conformes à Totem.", tip: "Rappeler de copier les heures directement depuis Totem plutôt que de les saisir de mémoire." },
+      { id: "attributs", w: 1, label: "Attributs", desc: "Modes de paiement et planification ajoutés selon Totem.", tip: "Montrer où trouver ces informations dans Totem." },
+      { id: "services", w: 3, label: "Services GBP", desc: "Seulement les services offerts par le client, conformes à la page 411 / site web, au moins 5 descriptifs (sauf avocats, notaires et professionnels de la santé). Attention aux services proposés par Google.", tip: "Revoir la liste ensemble : garder seulement ce que le client offre vraiment. Rappeler que les services suggérés par Google sont à vérifier un par un." },
+      { id: "produits", w: 2, label: "Produits GBP", desc: "3 produits pertinents créés. Pas de produits pour avocats, notaires et professionnels de la santé (mettre N/A).", tip: "Rappeler la règle des 3 produits pertinents et les exceptions, avec un bon exemple de la même verticale." },
+      { id: "reservations", w: 2, label: "Réservations", desc: "Lien de rendez-vous ou de soumission ajouté.", tip: "Rappeler de vérifier si le client a un lien de rendez-vous ou de soumission sur son site." },
+      { id: "photos", w: 2, label: "Photos", desc: "Photos du client ou génériques ajoutées, logo 400×400, couverture horizontale.", tip: "Redonner les formats attendus (logo 400×400, couverture horizontale) et montrer une fiche bien illustrée." },
+      { id: "publications", w: 2, label: "Publications", desc: "1 mise à jour personnalisée ajoutée.", tip: "Comparer une publication générique et une publication personnalisée au client pour montrer la différence." },
+      { id: "analytics", w: 2, label: "Analytics", desc: "GBP relié à Analytics, tagging effectué.", tip: "Refaire la procédure de liaison et de tagging ensemble une fois." },
+      { id: "shortlink", w: 1, label: "Courriel short link et code QR", desc: "Note bien inscrite dans Totem.", tip: "Rappeler l'étape de note dans Totem." },
+      { id: "avis", w: 2, label: "Type d'avis", desc: "Type de réponse conforme au forfait et aux demandes du client.", tip: "Revoir quel type de réponse va avec quel forfait, et où trouver les demandes particulières du client." },
+      { id: "activite", w: 1, label: "Activité Totem", desc: "Activité bien entrée et conforme.", tip: "Suggérer de terminer chaque dossier par une vérification rapide de l'activité Totem." },
+      { id: "fermeture", w: 1, label: "Fermeture des tâches", desc: "Tâches bien fermées dans Totem et dans Asana.", tip: "Suggérer une routine de fin de dossier : fermer Totem, fermer Asana, puis passer au suivant." }
     ],
     reopt: [
-      { id: "r_nom", label: "Nom de l'entreprise", critical: true, desc: "Conforme à Totem (sinon justification d'un Spécialiste Google)." },
-      { id: "r_nap", label: "Adresse et téléphone", critical: true, desc: "Corrects, aucune modification non autorisée." },
-      { id: "r_heures", label: "Heures d'ouverture", desc: "Conformes à Totem." },
-      { id: "r_web", label: "Site Web et liens", desc: "URL valide, liens fonctionnels." },
-      { id: "r_pub", label: "Publication récente", desc: "Une publication récente et personnalisée est en ligne." },
-      { id: "r_photos", label: "Nouvelles photos", desc: "De nouvelles photos ont été ajoutées." },
-      { id: "r_avis", label: "Type de réponse aux avis", desc: "Conforme au forfait et aux demandes du client." },
-      { id: "r_activite", label: "Activité Totem", desc: "Activité bien entrée et conforme." },
-      { id: "r_fermeture", label: "Fermeture des tâches", desc: "Tâches bien fermées dans Totem et dans Asana." }
+      { id: "r_nom", w: 3, critical: true, label: "Nom de l'entreprise", desc: "Conforme à Totem (sinon justification d'un Spécialiste Google).", tip: "Comparer le nom avec Totem ensemble et expliquer l'impact d'un nom non conforme." },
+      { id: "r_nap", w: 3, critical: true, label: "Adresse et téléphone", desc: "Corrects, aucune modification non autorisée.", tip: "Revoir la règle : aucune modification sans autorisation, et expliquer le risque pour la fiche." },
+      { id: "r_heures", w: 2, label: "Heures d'ouverture", desc: "Conformes à Totem.", tip: "Rappeler de valider les heures avec Totem à chaque réoptimisation." },
+      { id: "r_web", w: 2, label: "Site Web et liens", desc: "URL valide, liens fonctionnels.", tip: "Tester les liens ensemble." },
+      { id: "r_pub", w: 2, label: "Publication récente", desc: "Une publication récente et personnalisée est en ligne.", tip: "Montrer un exemple de publication personnalisée récente." },
+      { id: "r_photos", w: 2, label: "Nouvelles photos", desc: "De nouvelles photos ont été ajoutées.", tip: "Rappeler d'ajouter de nouvelles photos à chaque réoptimisation." },
+      { id: "r_avis", w: 2, label: "Type de réponse aux avis", desc: "Conforme au forfait et aux demandes du client.", tip: "Revoir quel type de réponse va avec quel forfait." },
+      { id: "r_activite", w: 1, label: "Activité Totem", desc: "Activité bien entrée et conforme.", tip: "Suggérer une vérification rapide de l'activité Totem en fin de dossier." },
+      { id: "r_fermeture", w: 1, label: "Fermeture des tâches", desc: "Tâches bien fermées dans Totem et dans Asana.", tip: "Suggérer une routine de fin de dossier." }
     ]
   }
 };
+const WEIGHTS = { 1: "Mineur", 2: "Standard", 3: "Majeur" };
+const BANDS = [[95, "Excellent", "s-hi"], [85, "Bon", "s-hi"], [70, "À améliorer", "s-mid"], [0, "Insuffisant", "s-lo"]];
+const DEFAULT_TIP = "Revoir ce point ensemble avec un exemple concret, puis vérifier au prochain contrôle.";
 
 /* ---------------- state ---------------- */
 const S = {
   token: null, me: null, cfg: null, cfgTask: null, isAdmin: false,
   records: [], loaded: false, view: "new", form: null, teamUsers: null,
-  dash: { period: "all", from: "", to: "", type: "all", member: "all" },
-  hist: { q: "", type: "all", member: "all" }
+  dash: { period: "all", from: "", to: "", type: "all", member: "all", old: true },
+  hist: { q: "", type: "all", member: "all", old: true }
 };
 
 /* ---------------- utils ---------------- */
@@ -365,7 +369,12 @@ const fmtDate = (d) => { if (!d) return ""; const [y, m, dd] = d.split("-"); ret
 const pct = (s, t) => t ? Math.round(s / t * 100) : 0;
 const clone = (o) => JSON.parse(JSON.stringify(o));
 const uid = () => Math.random().toString(36).slice(2, 8);
-function scoreClass(s, t) { const p = s / t; return p >= .9 ? "s-hi" : p >= .78 ? "s-mid" : "s-lo"; }
+function band(p, hasCrit) {
+  let i = BANDS.findIndex(b => p >= b[0]);
+  if (hasCrit && i < 2) i = 2;
+  return { label: BANDS[i][1], cls: BANDS[i][2] };
+}
+function scoreClass(s, t, hasCrit) { return band(pct(s, t), hasCrit).cls; }
 function toast(t, ms = 2600) { const d = document.createElement("div"); d.className = "toast"; d.textContent = t; document.body.appendChild(d); setTimeout(() => d.remove(), ms); }
 function startOfWeek(d = new Date()) { const x = new Date(d); x.setHours(0, 0, 0, 0); const day = (x.getDay() + 6) % 7; x.setDate(x.getDate() - day); return x; }
 const ds = (d) => d.toLocaleDateString("en-CA");
@@ -462,7 +471,7 @@ function seedDemo(count = 24) {
     pts.forEach(p => { labels[p.id] = p.label; const w = (weights[p.id] ?? .05) * skill; results[p.id] = Math.random() < w ? "err" : (p.id === "produits" && Math.random() < .1 ? "na" : "ok"); if (results[p.id] === "err") notes[p.id] = notesTxt[p.id] || "Point non conforme"; });
     const d = new Date(); d.setDate(d.getDate() - Math.floor(Math.random() * 75));
     const errs = pts.filter(p => results[p.id] === "err");
-    const rec = { v: 1, type, clientId: String(79000 + Math.floor(Math.random() * 700)), clientName: clients[Math.floor(Math.random() * clients.length)], link: "", memberId: mem.id, memberName: mem.name, memberGid: mem.gid, controllerGid: USERS.gougoux, controllerName: "Gougoux", date: ds(d), results, notes, labels, critical: errs.filter(p => p.critical).map(p => p.id), score: pts.length - errs.length, total: pts.length, comment: "", correctionGid: "", createdAt: d.toISOString(), demo: true };
+    const rec = { v: 1, type, clientId: String(79000 + Math.floor(Math.random() * 700)), clientName: clients[Math.floor(Math.random() * clients.length)], link: "", memberId: mem.id, memberName: mem.name, memberGid: mem.gid, controllerGid: USERS.gougoux, controllerName: "Gougoux", date: ds(d), results, notes, labels, critical: errs.filter(p => p.critical).map(p => p.id), score: scoreOf(type, results).earned, total: scoreOf(type, results).possible, comment: "", createdAt: d.toISOString(), demo: true };
     const gid = "T" + (TDB.n++);
     const html = recordNotes(rec);
     TDB.tasks[gid] = { name: recordName(rec), html, notes: htmlToText(html), project: PROJECT, section: HIST, completed: true, created: rec.createdAt };
@@ -515,11 +524,14 @@ function extractJSON(notes, marker) {
 function mergeCfg(saved) {
   const c = clone(DEFAULT_CONFIG);
   if (!saved) return c;
-  for (const k of Object.keys(saved)) c[k] = saved[k];
+  for (const k of ["admins", "weeklyTarget", "recurrence", "members"]) if (saved[k] !== undefined) c[k] = saved[k];
   c.types = Object.assign(clone(DEFAULT_CONFIG.types), saved.types || {});
-  c.repeat = Object.assign(clone(DEFAULT_CONFIG.repeat), saved.repeat || {});
-  c.correction = Object.assign(clone(DEFAULT_CONFIG.correction), saved.correction || {});
-  c.checklists = Object.assign(clone(DEFAULT_CONFIG.checklists), saved.checklists || {});
+  if (saved.checklists) for (const t of Object.keys(saved.checklists)) {
+    c.checklists[t] = saved.checklists[t].map(p => {
+      const d = (DEFAULT_CONFIG.checklists[t] || []).find(x => x.id === p.id) || {};
+      return Object.assign({ w: d.w || 2, tip: d.tip || "" }, p);
+    });
+  }
   return c;
 }
 function cfgNotes(cfg) {
@@ -560,19 +572,33 @@ async function loadRecords() {
   const recs = [];
   for (const t of tasks) {
     const d = extractJSON(t.notes, "QCDATA:");
-    if (d && d.type && d.results) recs.push(Object.assign(d, { gid: t.gid, url: t.permalink_url }));
+    if (d && d.type && d.results) { recs.push(Object.assign(d, { gid: t.gid, url: t.permalink_url })); continue; }
+    const imp = extractJSON(t.notes, "QCIMPORT:");
+    if (imp && imp.recs) recs.push(...expandImport(imp, t.gid));
   }
   recs.sort((a, b) => (b.date + (b.createdAt || "")).localeCompare(a.date + (a.createdAt || "")));
   S.records = recs; S.loaded = true;
 }
+function expandImport(imp, taskGid) {
+  return imp.recs.map(x => {
+    const [type, clientId, clientName, memberId, memberName, controllerName, date, res, status, oldScore, comment, src] = x;
+    const keys = imp.keys[type] || [];
+    const results = {}, labels = {};
+    keys.forEach(([id, label], i) => { const c = res[i]; if (!c || c === "-") return; results[id] = c === "e" ? "err" : c === "n" ? "na" : "ok"; labels[id] = label; });
+    const sc = scoreOf(type, results);
+    const crit = Object.keys(results).filter(id => results[id] === "err" && (S.cfg.checklists[type] || []).find(p => p.id === id)?.critical);
+    return { v: 1, imported: true, status, oldScore, type, clientId, clientName, link: "", memberId, memberName, memberGid: "", controllerGid: "", controllerName, date, results, notes: {}, labels, critical: crit, score: sc.earned, total: sc.possible, comment: comment || "", createdAt: date, gid: "imp-" + src, url: "https://app.asana.com/0/0/" + src + "/f", importTask: taskGid };
+  });
+}
 function recordName(r) {
-  return `${r.type === "reopt" ? "Réopti" : "Opti"} · ${r.critical.length ? "⚠️ " : ""}${r.score}/${r.total} · ${r.clientId ? r.clientId + " " : ""}${r.clientName} · ${r.memberName}`;
+  return `${r.type === "reopt" ? "Réopti" : "Opti"} · ${r.critical.length ? "⚠️ " : ""}${pct(r.score, r.total)} % · ${r.clientId ? r.clientId + " " : ""}${r.clientName} · ${r.memberName}`;
 }
 function recordNotes(r) {
   const errs = Object.keys(r.results).filter(k => r.results[k] === "err");
   const lab = (k) => r.labels[k] || k;
   let h = `<body><h2>${xml(S.cfg.types[r.type]?.label || r.type)} · ${xml(r.clientId)} ${xml(r.clientName)}</h2>`;
-  h += `<strong>Score : ${r.score}/${r.total}</strong> (${pct(r.score, r.total)} %)<br/>`;
+  const b = band(pct(r.score, r.total), r.critical.length > 0);
+  h += `<strong>Score : ${pct(r.score, r.total)} % (${xml(b.label)})</strong> · ${errs.length} erreur${errs.length > 1 ? "s" : ""}${r.critical.length ? " · point critique échoué" : ""}<br/>`;
   h += `Réalisée par : ${xml(r.memberName)}<br/>Contrôle fait par : ${xml(r.controllerName)}<br/>Date du contrôle : ${xml(fmtDate(r.date))}`;
   if (r.link) h += `<br/>Fiche : ${/^https:\/\//.test(r.link) ? `<a href="${xml(r.link)}">${xml(r.link)}</a>` : xml(r.link)}`;
   h += `<h2>Erreurs (${errs.length})</h2>`;
@@ -580,7 +606,8 @@ function recordNotes(r) {
     h += "<ul>" + errs.map(k => `<li><strong>${xml(lab(k))}</strong>${r.critical.includes(k) ? " ⚠️" : ""} : ${xml(r.notes[k] || "")}</li>`).join("") + "</ul>";
   } else h += "Aucune erreur. Contrôle parfait.";
   if (r.comment) h += `<h2>Commentaire</h2>${xml(r.comment).replace(/\n/g, "<br/>")}`;
-  h += `<h2>Suivi</h2>${xml(decisions(r).map(d => d.t).join(" | "))}`;
+  const co = coach(r);
+  if (co.length) h += `<h2>Comment aborder les points</h2><ul>${co.map(c => `<li><strong>${xml(c.label)}</strong> : ${xml(c.tip)}</li>`).join("")}</ul>`;
   h += `<hr/><em>Généré par l'outil Contrôle de qualité 2.0. Ne pas modifier le bloc ci-dessous.</em><pre>QCDATA:${xml(JSON.stringify(stripRec(r)))}</pre></body>`;
   return h;
 }
@@ -588,43 +615,30 @@ function stripRec(r) { const o = Object.assign({}, r); delete o.gid; delete o.ur
 
 /* ---------------- business rules ---------------- */
 function memberById(id) { return S.cfg.members.find(m => m.id === id); }
-function decisions(r) {
-  const out = [];
-  const errs = Object.keys(r.results).filter(k => r.results[k] === "err");
-  const t = S.cfg.types[r.type] || {};
-  const crit = r.critical || [];
-  const supName = supervisorName();
-  if (!errs.length) { out.push({ c: "var(--ok)", t: "Contrôle parfait : aucun suivi requis." }); return out; }
-  const supNeeded = r.score <= (t.supAtOrBelow ?? -1) || crit.length > 0;
-  if (supNeeded) {
-    const why = [];
-    if (r.score <= (t.supAtOrBelow ?? -1)) why.push(`note ≤ ${t.supAtOrBelow}/${r.total}`);
-    if (crit.length) why.push("point ⚠️ échoué");
-    out.push({ c: "var(--err)", t: `Rencontre avec ${supName} (${why.join(", ")}).`, sup: true });
-  } else {
-    out.push({ c: "var(--warn)", t: `Rencontre de feedback constructif avec ${S.cfg.coachName}.` });
-  }
-  out.push({ c: "var(--accent)", t: `Correction à demander à ${r.memberName} (délai ${S.cfg.correction.hours} h).` });
+function coach(r) {
   const pts = S.cfg.checklists[r.type] || [];
-  const notif = [...new Set(errs.map(k => pts.find(p => p.id === k)?.notify).filter(Boolean))];
-  notif.forEach(g => out.push({ c: "var(--mute)", t: `Aviser ${userName(g)} (${errs.filter(k => pts.find(p => p.id === k)?.notify === g).map(k => r.labels?.[k] || pts.find(p => p.id === k)?.label).join(", ")}).` }));
-  return out;
+  return Object.keys(r.results).filter(k => r.results[k] === "err").map(k => {
+    const p = pts.find(x => x.id === k);
+    return { id: k, label: r.labels?.[k] || p?.label || k, tip: (p && p.tip) || DEFAULT_TIP, crit: !!p?.critical, w: p?.w || 2 };
+  }).sort((a, b) => b.w - a.w);
 }
 function userName(g) { const u = TEAM_USERS.find(x => x.gid === g) || (S.teamUsers || []).find(x => x.gid === g); return u ? u.name.split(" ")[0] : "la personne responsable"; }
-function supervisorName() {
-  const g = S.cfg.supervisorGid;
-  if (g === USERS.samuel) return "Samuel";
-  const u = (S.teamUsers || []).find(x => x.gid === g);
-  return u ? u.name.split(" ")[0] : "Le superviseur";
-}
 function checklist(type) { return (S.cfg.checklists[type] || []).filter(p => p.active !== false); }
+function weightOf(type, id) { const p = (S.cfg.checklists[type] || []).find(x => x.id === id); return p?.w || 2; }
+function scoreOf(type, results) {
+  let possible = 0, lost = 0;
+  for (const [id, st] of Object.entries(results)) { if (st === "na") continue; const w = weightOf(type, id); possible += w; if (st === "err") lost += w; }
+  return { earned: possible - lost, possible };
+}
 function computeScore(form) {
   const pts = checklist(form.type);
-  const total = pts.length;
-  const errs = pts.filter(p => form.results[p.id] === "err");
-  return { total, score: total - errs.length, errs, crit: errs.filter(p => p.critical) };
+  const res = {}; pts.forEach(p => res[p.id] = form.results[p.id] || "ok");
+  const sc = scoreOf(form.type, res);
+  const errs = pts.filter(p => res[p.id] === "err");
+  const crit = errs.filter(p => p.critical);
+  const p = pct(sc.earned, sc.possible);
+  return { score: sc.earned, total: sc.possible, pct: p, band: band(p, crit.length > 0), errs, crit, count: pts.length };
 }
-
 /* ---------------- auth ---------------- */
 async function login(token, remember) {
   S.token = token;
@@ -737,7 +751,7 @@ function renderForm(m) {
   m.innerHTML = `
   <div class="head">
     <div><h1>${f.editGid ? "Modifier le contrôle" : "Nouveau contrôle"}</h1><p>Tout est conforme par défaut : clique seulement sur ce qui est en erreur.</p></div>
-    <div class="typesw">${Object.keys(S.cfg.types).map(k => `<button data-type="${k}" class="${f.type === k ? "on" : ""}">${esc(S.cfg.types[k].label)} <span class="mono" style="opacity:.6">/${checklist(k).length}</span></button>`).join("")}</div>
+    <div class="typesw">${Object.keys(S.cfg.types).map(k => `<button data-type="${k}" class="${f.type === k ? "on" : ""}">${esc(S.cfg.types[k].label)} <span class="mono" style="opacity:.6">${checklist(k).length} pts</span></button>`).join("")}</div>
   </div>
   <div class="formgrid">
     <div>
@@ -776,7 +790,7 @@ function ptRow(p, i) {
   const f = S.form; const st = f.results[p.id] || "ok";
   return `<div class="pt ${st}" data-pt="${esc(p.id)}">
     <div class="n">${String(i + 1).padStart(2, "0")}</div>
-    <div><div class="lab">${esc(p.label)}${p.critical ? '<span class="crit">⚠️ critique</span>' : ""}</div>
+    <div><div class="lab">${esc(p.label)}${p.critical ? '<span class="crit">⚠️ critique</span>' : ""}<span class="wt w${p.w || 2}" title="Poids dans la note">${WEIGHTS[p.w || 2]}</span></div>
       <div class="desc">${esc(p.desc || "")}</div>
       ${st === "err" ? `<textarea class="inp" data-note="${esc(p.id)}" placeholder="Qu'est-ce qui est à corriger ?">${esc(f.notes[p.id] || "")}</textarea>` : ""}
     </div>
@@ -811,24 +825,25 @@ function renderDup() {
 }
 function ring(score, total, size = 92) {
   const p = total ? score / total : 0, r = size / 2 - 7, c = 2 * Math.PI * r;
-  const col = p >= .9 ? "var(--ok)" : p >= .78 ? "var(--warn)" : "var(--err)";
-  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="var(--nabg)" stroke-width="9"/><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="${col}" stroke-width="9" stroke-linecap="round" stroke-dasharray="${c * p} ${c}" transform="rotate(-90 ${size / 2} ${size / 2})"/><text x="50%" y="54%" text-anchor="middle" font-family="IBM Plex Mono" font-weight="600" font-size="15" fill="var(--ink)">${Math.round(p * 100)}%</text></svg>`;
+  const col = p >= .85 ? "var(--ok)" : p >= .7 ? "var(--warn)" : "var(--err)";
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true"><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="var(--nabg)" stroke-width="9"/><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="${col}" stroke-width="9" stroke-linecap="round" stroke-dasharray="${c * p} ${c}" transform="rotate(-90 ${size / 2} ${size / 2})"/><text x="50%" y="54%" text-anchor="middle" font-family="IBM Plex Mono" font-weight="600" font-size="15" fill="var(--ink)">${Math.round(p * 100)}%</text></svg>`;
+}
+function coachList(items) {
+  if (!items.length) return `<div class="coach ok"><b>Contrôle parfait.</b> Rien à aborder : une bonne occasion de souligner le travail bien fait.</div>`;
+  return `<div class="coach"><div class="coach-t">Comment aborder les points</div>${items.map(c => `<div class="coach-i"><b>${esc(c.label)}${c.crit ? " ⚠️" : ""}</b><span>${esc(c.tip)}</span></div>`).join("")}</div>`;
 }
 function renderVerdict() {
   const f = S.form; const box = $("#verdictBox"); if (!box) return;
   const sc = computeScore(f);
-  const mem = memberById(f.memberId);
-  const fake = { type: f.type, results: f.results, score: sc.score, total: sc.total, critical: sc.crit.map(p => p.id), memberName: mem ? mem.name : "la personne" };
-  const dec = decisions(fake);
-  const supNeeded = dec.some(d => d.sup);
-  const notifyPts = sc.errs.filter(p => p.notify);
-  const hasErr = sc.errs.length > 0;
+  const fake = { type: f.type, results: f.results, labels: {} };
   box.innerHTML = `
-    <div class="ring">${ring(sc.score, sc.total)}<div><div class="big">${sc.score}<small>/${sc.total}</small></div><div style="color:var(--mute);font-size:13px">${sc.errs.length} erreur${sc.errs.length > 1 ? "s" : ""}${sc.crit.length ? ` · <b style="color:var(--err)">${sc.crit.length} critique${sc.crit.length > 1 ? "s" : ""}</b>` : ""}</div></div></div>
-    <ul class="dec">${dec.map(d => `<li><span class="dot" style="background:${d.c}"></span><span>${esc(d.t)}</span></li>`).join("")}</ul>
-    <div class="opts" style="font-size:13px;color:var(--mute)">Enregistrer archive seulement le contrôle dans l'historique Asana : aucune tâche assignée, aucune échéance, aucune notification.</div>
-    <button class="btn" id="saveBtn" style="width:100%;padding:14px">${f.editGid ? "Enregistrer les modifications" : "Enregistrer le contrôle"}</button>
+    <div class="ring">${ring(sc.score, sc.total)}<div><div class="big">${sc.pct}<small> %</small></div>
+      <span class="score ${sc.band.cls}">${esc(sc.band.label)}</span>
+      <div style="color:var(--mute);font-size:13px;margin-top:6px">${sc.errs.length} erreur${sc.errs.length > 1 ? "s" : ""} sur ${sc.count} points${sc.crit.length ? ` · <b style="color:var(--err)">${sc.crit.length} critique${sc.crit.length > 1 ? "s" : ""}</b>` : ""}</div></div></div>
+    ${coachList(coach(fake))}
+    <button class="btn" id="saveBtn" style="width:100%;padding:14px;margin-top:14px">${f.editGid ? "Enregistrer les modifications" : "Enregistrer le contrôle"}</button>
     ${f.editGid ? `<button class="btn ghost" id="cancelEdit" style="width:100%;margin-top:8px">Annuler</button>` : ""}
+    <div style="font-size:12px;color:var(--mute);margin-top:10px">Le contrôle est seulement archivé dans l'historique : aucune tâche assignée, aucune échéance, aucune notification.</div>
     <div id="saveMsg"></div>`;
   $("#saveBtn").onclick = saveControl;
   const ce = $("#cancelEdit"); if (ce) ce.onclick = () => { S.form = newForm("opti"); go("hist"); };
@@ -877,19 +892,18 @@ async function saveControl() {
   }
 }
 function showSaved(rec, edited) {
-  $("#main").innerHTML = `<div class="card pad" style="max-width:640px;margin:40px auto;text-align:center;padding:40px">
+  const b = band(pct(rec.score, rec.total), rec.critical.length > 0);
+  $("#main").innerHTML = `<div class="card pad" style="max-width:640px;margin:40px auto;padding:40px">
     <div style="display:flex;justify-content:center">${ring(rec.score, rec.total, 120)}</div>
-    <h1 style="font-size:30px;margin-top:14px">${edited ? "Contrôle modifié" : "Contrôle enregistré"}</h1>
-    <p style="color:var(--mute)">${esc(rec.clientName)} · ${esc(rec.memberName)} · ${rec.score}/${rec.total}</p>
-    <ul class="dec" style="text-align:left;max-width:440px;margin:18px auto">${decisions(rec).map(d => `<li><span class="dot" style="background:${d.c}"></span><span>${esc(d.t)}</span></li>`).join("")}
-</ul>
+    <h1 style="font-size:30px;margin-top:14px;text-align:center">${edited ? "Contrôle modifié" : "Contrôle enregistré"}</h1>
+    <p style="color:var(--mute);text-align:center">${esc(rec.clientName)} · ${esc(rec.memberName)} · <span class="score ${b.cls}">${pct(rec.score, rec.total)} % · ${esc(b.label)}</span></p>
+    ${coachList(coach(rec))}
     <div class="row" style="justify-content:center;margin-top:20px">
       ${asanaBtn(rec.gid, rec.url, "Ouvrir dans Asana", "btn ghost")}
       <button class="btn" id="againBtn">Nouveau contrôle</button>
     </div></div>`;
   $("#againBtn").onclick = () => go("new");
 }
-
 /* =====================================================================
    TABLEAU DE BORD · ERREURS FRÉQUENTES
    ===================================================================== */
@@ -905,7 +919,7 @@ function periodRange(p, from, to) {
 }
 function filtered(f) {
   const [a, b] = periodRange(f.period, f.from, f.to);
-  return S.records.filter(r => r.date >= a && r.date <= b && (f.type === "all" || r.type === f.type) && (f.member === "all" || r.memberId === f.member));
+  return S.records.filter(r => (f.old || !r.imported) && r.date >= a && r.date <= b && (f.type === "all" || r.type === f.type) && (f.member === "all" || r.memberId === f.member));
 }
 function pointLabel(type, id, rec) {
   const p = (S.cfg.checklists[type] || []).find(x => x.id === id);
@@ -933,22 +947,14 @@ function memberStats(recs) {
   return [...m.values()].sort((a, b) => a.sum / a.n - b.sum / b.n);
 }
 function alertsOf(recs) {
-  const out = []; const ms = memberStats(recs);
-  for (const m of ms) {
-    for (const [k, n] of Object.entries(m.pts)) {
-      const [type, id] = k.split(":");
-      if (n >= S.cfg.repeat.written) out.push({ lvl: "w", m: m.name, t: `${pointLabel(type, id)} : ${n} fois`, tag: "Avertissement écrit" });
-      else if (n >= S.cfg.repeat.verbal) out.push({ lvl: "v", m: m.name, t: `${pointLabel(type, id)} : ${n} fois`, tag: "Avertissement verbal" });
-    }
+  const out = [];
+  for (const m of memberStats(recs)) for (const [k, n] of Object.entries(m.pts)) {
+    if (n < (S.cfg.recurrence || 2)) continue;
+    const [type, id] = k.split(":");
+    const p = (S.cfg.checklists[type] || []).find(x => x.id === id);
+    out.push({ m: m.name, n, label: pointLabel(type, id), tip: p?.tip || DEFAULT_TIP });
   }
-  for (const r of recs) if (decisions(r).some(d => d.sup)) out.push({ lvl: "s", m: r.memberName, t: `${r.clientId ? r.clientId + " " : ""}${r.clientName} · ${r.score}/${r.total}${(r.critical || []).length ? " · point ⚠️" : ""} · ${fmtDate(r.date)}`, tag: "Rencontre " + supervisorName() });
-  const all = memberStats(S.records);
-  for (const m of all) {
-    const every = S.cfg.bilanEvery || 5;
-    if (m.n > 0 && m.n % every === 0) out.push({ lvl: "b", m: m.name, t: `${m.n} contrôles complétés : planifier la rencontre bilan (30 min max)`, tag: "Bilan" });
-  }
-  const order = { s: 0, w: 1, v: 2, b: 3 };
-  return out.sort((a, b) => order[a.lvl] - order[b.lvl]);
+  return out.sort((a, b) => b.n - a.n);
 }
 function renderDash(m) {
   const f = S.dash;
@@ -961,23 +967,25 @@ function renderDash(m) {
   const ms = memberStats(recs);
   const al = alertsOf(recs);
   const maxErr = ps[0]?.err || 1;
-  const first = S.records.length ? S.records[S.records.length - 1].date : null;
+  const nNew = S.records.filter(r => !r.imported).length, nOld = S.records.length - nNew;
+  const firstNew = S.records.filter(r => !r.imported).map(r => r.date).sort()[0];
   const members = S.cfg.members;
   m.innerHTML = `
-  <div class="head"><div><h1>Erreurs fréquentes</h1><p>${first ? `Basé sur ${S.records.length} contrôle${S.records.length > 1 ? "s" : ""} faits avec l'outil depuis le ${esc(fmtDate(first))}.` : "Aucun contrôle encore enregistré avec l'outil."}</p></div>
+  <div class="head"><div><h1>Erreurs fréquentes</h1><p>${nNew ? `${nNew} contrôle${nNew > 1 ? "s" : ""} faits avec l'outil depuis le ${esc(fmtDate(firstNew))}` : "Aucun contrôle encore fait avec l'outil"}${nOld ? ` · ${nOld} contrôle${nOld > 1 ? "s" : ""} de l'ancien système ${f.old ? "inclus" : "masqués"}` : ""}.</p></div>
     <div class="row">${S.isAdmin ? `<button class="btn ghost sm" id="reportBtn">Copier le rapport</button>` : ""}<button class="btn ghost sm" id="refreshBtn">↻ Actualiser</button></div></div>
   <div class="filters">
     <div class="chips">${PERIODS.map(([k, l]) => `<button class="chip ${f.period === k ? "on" : ""}" data-p="${k}">${l}</button>`).join("")}</div>
     ${f.period === "custom" ? `<input type="date" class="inp sm" id="d_from" value="${esc(f.from)}"><span style="color:var(--mute)">au</span><input type="date" class="inp sm" id="d_to" value="${esc(f.to)}">` : ""}
     <select class="inp sm" id="d_type"><option value="all">Tous les types</option>${Object.keys(S.cfg.types).map(k => `<option value="${k}" ${f.type === k ? "selected" : ""}>${esc(S.cfg.types[k].label)}</option>`).join("")}</select>
     <select class="inp sm" id="d_member"><option value="all">Toute l'équipe</option>${members.map(x => `<option value="${esc(x.id)}" ${f.member === x.id ? "selected" : ""}>${esc(x.name)}</option>`).join("")}</select>
+    ${nOld ? `<label class="chip ${f.old ? "on" : ""}" style="cursor:pointer"><input type="checkbox" id="d_old" ${f.old ? "checked" : ""} style="display:none">Inclure l'ancien historique</label>` : ""}
   </div>
   ${!n ? `<div class="card empty"><b>Rien à afficher pour ce filtre</b>Les erreurs récurrentes apparaîtront ici dès les premiers contrôles.</div>` : `
   <div class="kpis">
     <div class="card kpi"><div class="l">Contrôles</div><div class="v">${n}</div><div class="s">${withErr} avec au moins une erreur</div></div>
     <div class="card kpi"><div class="l">Score moyen</div><div class="v">${avg}<span style="font-size:20px">%</span></div><div class="s">${recs.filter(r => r.score === r.total).length} contrôle(s) parfait(s)</div></div>
     <div class="card kpi"><div class="l">Erreurs relevées</div><div class="v">${ps.reduce((s, p) => s + p.err, 0)}</div><div class="s">sur ${ps.length} point(s) différent(s)</div></div>
-    <div class="card kpi"><div class="l">Points ⚠️ échoués</div><div class="v" style="color:${crit ? "var(--err)" : "inherit"}">${crit}</div><div class="s">points marqués critiques</div></div>
+    <div class="card kpi"><div class="l">Points ⚠️ échoués</div><div class="v" style="color:${crit ? "var(--err)" : "inherit"}">${crit}</div><div class="s">profil, nom, adresse, téléphone</div></div>
   </div>
   <div class="grid2">
     <div class="card pad">
@@ -990,8 +998,8 @@ function renderDash(m) {
         <span class="ct">${p.err}</span></button>`).join("") || `<div class="empty" style="padding:20px">Aucune erreur sur cette période 🎉</div>`}</div>
     </div>
     <div style="display:flex;flex-direction:column;gap:18px">
-      <div class="card pad"><div class="sect-t"><h2>À intervenir</h2><span>règles du processus</span></div>
-        ${al.length ? al.slice(0, 12).map(a => `<div class="alert"><span class="pill ${a.lvl}">${esc(a.tag)}</span><div><b>${esc(a.m)}</b><br><span style="color:var(--mute)">${esc(a.t)}</span></div></div>`).join("") : `<div style="color:var(--mute);font-size:14px">Aucune erreur répétée. Rien à signaler.</div>`}
+      <div class="card pad"><div class="sect-t"><h2>Points à travailler</h2><span>même erreur ${S.cfg.recurrence || 2} fois ou plus</span></div>
+        ${al.length ? al.slice(0, 10).map(a => `<div class="alert"><span class="pill v">×${a.n}</span><div><b>${esc(a.m)}</b> · ${esc(a.label)}<br><span style="color:var(--mute);font-size:13px">${esc(a.tip)}</span></div></div>`).join("") + (al.length > 10 ? `<div style="color:var(--mute);font-size:13px;padding-top:8px">+ ${al.length - 10} autre(s). Filtre par membre pour tout voir.</div>` : "") : `<div style="color:var(--mute);font-size:14px">Aucune erreur répétée sur cette période.</div>`}
       </div>
       <div class="card pad trend"><div class="sect-t"><h2>Tendance</h2><span>score moyen, 12 dernières semaines</span></div>${trendSvg()}</div>
     </div>
@@ -1006,6 +1014,7 @@ function renderDash(m) {
   m.querySelectorAll("[data-p]").forEach(b => b.onclick = () => { f.period = b.dataset.p; renderDash(m); });
   const dt = $("#d_type"); if (dt) dt.onchange = e => { f.type = e.target.value; renderDash(m); };
   const dm = $("#d_member"); if (dm) dm.onchange = e => { f.member = e.target.value; renderDash(m); };
+  const dold = $("#d_old"); if (dold) dold.onchange = e => { f.old = e.target.checked; renderDash(m); };
   const df = $("#d_from"); if (df) df.onchange = e => { f.from = e.target.value; renderDash(m); };
   const dto = $("#d_to"); if (dto) dto.onchange = e => { f.to = e.target.value; renderDash(m); };
   $("#refreshBtn").onclick = async () => { S.loaded = false; render(); await loadRecords(); renderWeek(); render(); };
@@ -1023,7 +1032,7 @@ function trendSvg() {
   const f = S.dash; const weeks = [];
   const s0 = startOfWeek();
   for (let i = 11; i >= 0; i--) { const a = new Date(s0); a.setDate(a.getDate() - 7 * i); const b = new Date(a); b.setDate(b.getDate() + 6); weeks.push([ds(a), ds(b)]); }
-  const data = weeks.map(([a, b]) => { const r = S.records.filter(x => x.date >= a && x.date <= b && (f.type === "all" || x.type === f.type) && (f.member === "all" || x.memberId === f.member)); return { a, n: r.length, avg: r.length ? r.reduce((s, x) => s + x.score / x.total, 0) / r.length : null }; });
+  const data = weeks.map(([a, b]) => { const r = S.records.filter(x => x.date >= a && x.date <= b && (f.old || !x.imported) && (f.type === "all" || x.type === f.type) && (f.member === "all" || x.memberId === f.member)); return { a, n: r.length, avg: r.length ? r.reduce((s, x) => s + x.score / x.total, 0) / r.length : null }; });
   const W = 380, H = 150, pl = 26, pb = 22, bw = (W - pl) / 12;
   const y = v => H - pb - (v - .5) / .5 * (H - pb - 10);
   let s = `<svg viewBox="0 0 ${W} ${H}" width="100%">`;
@@ -1052,7 +1061,7 @@ function copyReport(recs, ps, ms, al) {
   t += `Contrôles effectués : ${n}\nScore moyen : ${avg} %\nContrôles parfaits : ${recs.filter(r => r.score === r.total).length}\nPoints critiques échoués : ${recs.reduce((s, r) => s + (r.critical || []).length, 0)}\n\n`;
   t += `Erreurs les plus fréquentes :\n` + (ps.slice(0, 5).map((p, i) => `${i + 1}. ${p.label} : ${p.err} fois (${pct(p.err, p.appl)} %)`).join("\n") || "Aucune") + "\n\n";
   t += `Par membre :\n` + ms.map(m => `- ${m.name} : ${m.n} contrôle(s), moyenne ${Math.round(m.sum / m.n * 100)} %`).join("\n") + "\n";
-  if (al.filter(a => a.lvl !== "b").length) t += `\nÀ intervenir :\n` + al.filter(a => a.lvl !== "b").map(a => `- ${a.m} : ${a.t} (${a.tag.toLowerCase()})`).join("\n") + "\n";
+  if (al.length) t += `\nPoints récurrents à travailler :\n` + al.map(a => `- ${a.m} : ${a.label} (${a.n} fois)`).join("\n") + "\n";
   navigator.clipboard.writeText(t).then(() => toast("Rapport copié : colle-le dans ta tâche de rapport hebdo."), () => toast("Copie impossible dans ce navigateur."));
 }
 
@@ -1061,36 +1070,41 @@ function copyReport(recs, ps, ms, al) {
    ===================================================================== */
 function renderHist(m) {
   const h = S.hist; const q = h.q.trim().toLowerCase();
-  const recs = S.records.filter(r => (h.type === "all" || r.type === h.type) && (h.member === "all" || r.memberId === h.member) &&
+  const recs = S.records.filter(r => (h.old || !r.imported) && (h.type === "all" || r.type === h.type) && (h.member === "all" || r.memberId === h.member) &&
     (!q || `${r.clientId} ${r.clientName} ${r.memberName} ${r.controllerName}`.toLowerCase().includes(q)));
   m.innerHTML = `<div class="head"><div><h1>Historique</h1><p>${S.records.length} contrôle${S.records.length > 1 ? "s" : ""} enregistrés.${TEST_MODE ? " Mode test : rien n'est dans Asana." : " Chaque ligne est aussi une tâche dans Asana."}</p></div>
     ${TEST_MODE ? "" : `<a class="btn ghost sm" href="https://app.asana.com/1/1201965898308725/project/${PROJECT}" target="_blank" rel="noopener">Ouvrir le projet Asana ↗</a>`}</div>
   <div class="filters"><input class="inp sm" id="h_q" placeholder="Rechercher un client, un membre…" value="${esc(h.q)}" style="min-width:260px">
     <select class="inp sm" id="h_type"><option value="all">Tous les types</option>${Object.keys(S.cfg.types).map(k => `<option value="${k}" ${h.type === k ? "selected" : ""}>${esc(S.cfg.types[k].label)}</option>`).join("")}</select>
-    <select class="inp sm" id="h_member"><option value="all">Toute l'équipe</option>${S.cfg.members.map(x => `<option value="${esc(x.id)}" ${h.member === x.id ? "selected" : ""}>${esc(x.name)}</option>`).join("")}</select></div>
+    <select class="inp sm" id="h_member"><option value="all">Toute l'équipe</option>${S.cfg.members.map(x => `<option value="${esc(x.id)}" ${h.member === x.id ? "selected" : ""}>${esc(x.name)}</option>`).join("")}</select>
+    ${S.records.some(r => r.imported) ? `<label class="chip ${h.old ? "on" : ""}" style="cursor:pointer"><input type="checkbox" id="h_old" ${h.old ? "checked" : ""} style="display:none">Inclure l'ancien historique</label>` : ""}</div>
   <div class="card">${recs.length ? `<table class="t"><thead><tr><th>Date</th><th>Client</th><th>Type</th><th>Réalisée par</th><th>Score</th><th>Erreurs</th><th>Contrôleur</th></tr></thead><tbody>
-  ${recs.map(r => { const errs = Object.keys(r.results).filter(k => r.results[k] === "err"); return `<tr class="click" data-g="${esc(r.gid)}"><td class="mono">${esc(fmtDate(r.date))}</td><td><b>${esc(r.clientName)}</b> <span class="mono" style="color:var(--mute)">${esc(r.clientId)}</span></td><td>${esc(S.cfg.types[r.type]?.label || r.type)}</td><td>${esc(r.memberName)}</td><td><span class="score ${scoreClass(r.score, r.total)}">${r.score}/${r.total}</span>${(r.critical || []).length ? " ⚠️" : ""}</td><td style="max-width:280px">${errs.slice(0, 3).map(k => `<span class="tag">${esc(r.labels[k] || k)}</span>`).join(" ")}${errs.length > 3 ? ` <span class="tag">+${errs.length - 3}</span>` : ""}</td><td style="color:var(--mute)">${esc(r.controllerName)}</td></tr>`; }).join("")}
+  ${recs.map(r => { const errs = Object.keys(r.results).filter(k => r.results[k] === "err"); return `<tr class="click" data-g="${esc(r.gid)}"><td class="mono">${esc(fmtDate(r.date))}</td><td><b>${esc(r.clientName)}</b> <span class="mono" style="color:var(--mute)">${esc(r.clientId)}</span></td><td>${esc(S.cfg.types[r.type]?.label || r.type)}</td><td>${esc(r.memberName)}</td><td><span class="score ${scoreClass(r.score, r.total, (r.critical || []).length > 0)}">${pct(r.score, r.total)} %</span>${(r.critical || []).length ? " ⚠️" : ""}${r.imported ? ' <span class="tag">ancien</span>' : ""}</td><td style="max-width:280px">${errs.slice(0, 3).map(k => `<span class="tag">${esc(r.labels[k] || k)}</span>`).join(" ")}${errs.length > 3 ? ` <span class="tag">+${errs.length - 3}</span>` : ""}</td><td style="color:var(--mute)">${esc(r.controllerName)}</td></tr>`; }).join("")}
   </tbody></table>` : `<div class="empty"><b>Aucun contrôle</b>${S.records.length ? "Aucun résultat pour cette recherche." : "Le premier contrôle fait avec l'outil apparaîtra ici."}</div>`}</div>`;
   const hq = $("#h_q"); hq.oninput = e => { h.q = e.target.value; const pos = e.target.selectionStart; renderHist(m); const n = $("#h_q"); n.focus(); n.setSelectionRange(pos, pos); };
   $("#h_type").onchange = e => { h.type = e.target.value; renderHist(m); };
   $("#h_member").onchange = e => { h.member = e.target.value; renderHist(m); };
+  const ho = $("#h_old"); if (ho) ho.onchange = e => { h.old = e.target.checked; renderHist(m); };
   m.querySelectorAll("[data-g]").forEach(tr => tr.onclick = () => openRecord(S.records.find(r => r.gid === tr.dataset.g)));
 }
 function openRecord(r) {
   if (!r) return;
-  const canEdit = S.isAdmin || r.controllerGid === S.me.gid;
+  const canEdit = !r.imported && (S.isAdmin || r.controllerGid === S.me.gid);
   const ov = document.createElement("div"); ov.className = "ov";
   const ids = Object.keys(r.results);
-  ov.innerHTML = `<div class="drawer"><div class="row" style="justify-content:space-between"><span class="tag">${esc(S.cfg.types[r.type]?.label || r.type)}</span><button class="iconb" id="x">✕</button></div>
-  <div class="ring" style="margin-top:14px">${ring(r.score, r.total, 84)}<div><h2>${esc(r.clientName)}</h2><div style="color:var(--mute)">${esc(r.clientId)} · ${r.score}/${r.total}</div></div></div>
-  <dl class="kv"><dt>Réalisée par</dt><dd>${esc(r.memberName)}</dd><dt>Contrôle fait par</dt><dd>${esc(r.controllerName)}</dd><dt>Date</dt><dd>${esc(fmtDate(r.date))}</dd>
+  const b = band(pct(r.score, r.total), (r.critical || []).length > 0);
+  const ord = { err: 0, na: 1, ok: 2 };
+  ov.innerHTML = `<div class="drawer"><div class="row" style="justify-content:space-between"><span class="tag">${esc(S.cfg.types[r.type]?.label || r.type)}${r.imported ? " · ancien système" : ""}</span><button class="iconb" id="x" aria-label="Fermer">✕</button></div>
+  <div class="ring" style="margin-top:14px">${ring(r.score, r.total, 84)}<div><h2>${esc(r.clientName)}</h2><div style="color:var(--mute)">${esc(r.clientId)} · <span class="score ${b.cls}">${pct(r.score, r.total)} % · ${esc(b.label)}</span></div></div></div>
+  ${r.imported ? `<div class="msg i">Contrôle importé de l'ancien système (sous-tâches Asana). ${r.status === "verified" ? `Vérifié : correspond à la note de ${r.oldScore}/22 inscrite à l'époque.` : "Aucune note inscrite à l'époque : résultat reconstitué à partir des sous-tâches cochées."} Lecture seule.</div>` : ""}
+  <dl class="kv"><dt>Réalisée par</dt><dd>${esc(r.memberName)}</dd><dt>Contrôle fait par</dt><dd>${esc(r.controllerName || "-")}</dd><dt>Date</dt><dd>${esc(fmtDate(r.date))}</dd>
   ${r.link ? `<dt>Fiche</dt><dd>${/^https:\/\//.test(r.link) ? `<a href="${esc(r.link)}" target="_blank" rel="noopener">${esc(r.link)}</a>` : esc(r.link)}</dd>` : ""}
   ${r.comment ? `<dt>Commentaire</dt><dd>${esc(r.comment)}</dd>` : ""}</dl>
-  <ul class="dec">${decisions(r).map(d => `<li><span class="dot" style="background:${d.c}"></span><span>${esc(d.t)}</span></li>`).join("")}</ul>
-  <div>${ids.sort((a, b) => ({ err: 0, na: 1, ok: 2 }[r.results[a]] - { err: 0, na: 1, ok: 2 }[r.results[b]])).map(k => `<div class="res"><span class="st ${r.results[k]}">${{ ok: "Conforme", err: "Erreur", na: "N/A" }[r.results[k]]}</span><div><b>${esc(r.labels[k] || k)}</b>${(r.critical || []).includes(k) ? " ⚠️" : ""}${r.notes[k] ? `<br><span style="color:var(--ink2)">${esc(r.notes[k])}</span>` : ""}</div></div>`).join("")}</div>
-  <div class="row" style="margin-top:22px">${asanaBtn(r.gid, r.url, "Ouvrir dans Asana ↗")}
+  ${coachList(coach(r))}
+  <div style="margin-top:14px">${ids.sort((a, c) => ord[r.results[a]] - ord[r.results[c]]).map(k => `<div class="res"><span class="st ${r.results[k]}">${{ ok: "Conforme", err: "Erreur", na: "N/A" }[r.results[k]]}</span><div><b>${esc(r.labels[k] || k)}</b>${(r.critical || []).includes(k) ? " ⚠️" : ""}${r.notes[k] ? `<br><span style="color:var(--ink2)">${esc(r.notes[k])}</span>` : ""}</div></div>`).join("")}</div>
+  <div class="row" style="margin-top:22px">${r.imported ? `<a class="btn ghost sm" href="${esc(r.url)}" target="_blank" rel="noopener">Voir l'ancien contrôle dans Asana ↗</a>` : asanaBtn(r.gid, r.url, "Ouvrir dans Asana ↗")}
   ${canEdit ? `<button class="btn sm" id="editR">Modifier</button>` : ""}
-  ${S.isAdmin ? `<button class="btn danger sm" id="delR">Supprimer</button>` : ""}</div></div>`;
+  ${S.isAdmin && !r.imported ? `<button class="btn danger sm" id="delR">Supprimer</button>` : ""}</div></div>`;
   document.body.appendChild(ov);
   ov.onclick = e => { if (e.target === ov) ov.remove(); };
   $("#x", ov).onclick = () => ov.remove();
@@ -1102,12 +1116,11 @@ function openRecord(r) {
     S.form = f; go("new");
   };
   const dl = $("#delR", ov); if (dl) dl.onclick = async () => {
-    if (!confirm(`Supprimer définitivement le contrôle de « ${r.clientName} » ? La tâche Asana sera aussi supprimée (corbeille Asana).`)) return;
+    if (!confirm(`Supprimer définitivement le contrôle de « ${r.clientName} » ? La tâche d'historique Asana ira à la corbeille.`)) return;
     try { await api("DELETE", `/tasks/${r.gid}`); S.records = S.records.filter(x => x.gid !== r.gid); ov.remove(); renderWeek(); render(); toast("Contrôle supprimé."); }
     catch (e) { toast("Erreur : " + e.message, 5000); }
   };
 }
-
 /* =====================================================================
    CONFIGURATION (admin)
    ===================================================================== */
@@ -1125,21 +1138,23 @@ async function renderCfg(m) {
   if (!D) D = clone(S.cfg);
   if (!S.teamUsers) { m.innerHTML = '<div class="loading"><div class="spin d"></div>Chargement de l\'équipe…</div>'; await ensureTeamUsers(); }
   const pts = D.checklists[cfgType];
+  const nOld = S.records.filter(r => r.imported).length;
   m.innerHTML = `<div class="head"><div><h1>Configuration</h1><p>Les changements s'appliquent aux prochains contrôles. L'historique garde les points tels qu'ils étaient.</p></div>
     <div class="row"><button class="btn ghost" id="resetCfg">Annuler les changements</button><button class="btn" id="saveCfg">Enregistrer</button></div></div>
 
   <div class="card pad cfgsec">
-    <div class="row" style="justify-content:space-between"><div><h2>Checklists</h2><div class="sub">Renomme, réordonne, marque critique (⚠️), ou désactive un point. Un point désactivé reste dans l'historique.</div></div>
+    <div class="row" style="justify-content:space-between"><div><h2>Checklists</h2><div class="sub">Pour chaque point : son poids dans la note (Mineur 1, Standard 2, Majeur 3), s'il est critique ⚠️, et la suggestion pour l'aborder avec la personne.</div></div>
     <div class="typesw">${Object.keys(D.types).map(k => `<button data-ct="${k}" class="${cfgType === k ? "on" : ""}">${esc(D.types[k].label)} <span class="mono" style="opacity:.6">${D.checklists[k].filter(p => p.active !== false).length}</span></button>`).join("")}</div></div>
     <div>${pts.map((p, i) => `<div class="cfg-pt ${p.active === false ? "off" : ""}" data-i="${i}">
       <div class="mono" style="color:var(--mute);padding-top:10px">${String(i + 1).padStart(2, "0")}</div>
-      <input class="inp" data-f="label" value="${esc(p.label)}">
-      <textarea class="inp" data-f="desc" rows="2">${esc(p.desc || "")}</textarea>
+      <div style="display:flex;flex-direction:column;gap:6px"><input class="inp" data-f="label" value="${esc(p.label)}" aria-label="Nom du point">
+        <select class="inp sm" data-f="w" aria-label="Poids">${[1, 2, 3].map(w => `<option value="${w}" ${(p.w || 2) === w ? "selected" : ""}>${WEIGHTS[w]} (${w})</option>`).join("")}</select></div>
+      <div style="display:flex;flex-direction:column;gap:6px"><textarea class="inp" data-f="desc" rows="2" placeholder="Ce qu'on vérifie" aria-label="Ce qu'on vérifie">${esc(p.desc || "")}</textarea>
+        <textarea class="inp" data-f="tip" rows="2" placeholder="Comment aborder le point avec la personne" aria-label="Comment l'aborder" style="background:var(--accentbg)">${esc(p.tip || "")}</textarea></div>
       <div class="ctrl">
         <label class="check" style="margin:0"><input type="checkbox" data-f="critical" ${p.critical ? "checked" : ""}> ⚠️ Critique</label>
         <label class="check" style="margin:0"><input type="checkbox" data-f="active" ${p.active !== false ? "checked" : ""}> Actif</label>
-        <select class="inp sm" data-f="notify" title="Personne à aviser si ce point échoue (rappel affiché seulement)" style="max-width:150px">${userOpts(p.notify || "", "À aviser : personne")}</select>
-        <div class="row" style="gap:4px"><button class="iconb" data-mv="-1" title="Monter">↑</button><button class="iconb" data-mv="1" title="Descendre">↓</button></div>
+        <div class="row" style="gap:4px"><button class="iconb" data-mv="-1" title="Monter" aria-label="Monter">↑</button><button class="iconb" data-mv="1" title="Descendre" aria-label="Descendre">↓</button></div>
       </div></div>`).join("")}</div>
     <button class="btn ghost sm" id="addPt" style="margin-top:12px">＋ Ajouter un point</button>
   </div>
@@ -1149,42 +1164,38 @@ async function renderCfg(m) {
     ${D.members.map((x, i) => `<tr data-mi="${i}"><td><input class="inp sm" data-m="name" value="${esc(x.name)}" style="width:100%"></td><td><select class="inp sm" data-m="gid">${userOpts(x.gid, "Aucun compte")}</select></td><td><input type="checkbox" data-m="active" ${x.active !== false ? "checked" : ""}></td></tr>`).join("")}
     </tbody></table><button class="btn ghost sm" id="addMem" style="margin-top:12px">＋ Ajouter un membre</button></div>
 
-  <div class="card pad cfgsec"><h2>Accès et règles</h2><div class="sub">Toute personne membre du projet Asana peut se connecter et faire des contrôles. Les administrateurs voient en plus la configuration, le rapport et peuvent supprimer.</div>
+  <div class="card pad cfgsec"><h2>Accès et réglages</h2><div class="sub">Toute personne membre du projet Asana peut se connecter et faire des contrôles. Les administrateurs voient en plus la configuration, le rapport et peuvent supprimer.</div>
     <div class="field"><label>Administrateurs</label><div class="row">${(S.teamUsers || []).map(u => `<label class="chip ${D.admins.includes(u.gid) ? "on" : ""}" style="cursor:pointer"><input type="checkbox" data-adm="${esc(u.gid)}" ${D.admins.includes(u.gid) ? "checked" : ""} style="display:none">${esc(u.name)}</label>`).join("")}</div></div>
     <div class="meta" style="grid-template-columns:repeat(3,1fr)">
-      <div class="field"><label>Superviseur (rencontre si note basse)</label><select class="inp" id="c_sup">${userOpts(D.supervisorGid)}</select></div>
-      <div class="field"><label>Feedback constructif par</label><input class="inp" id="c_coach" value="${esc(D.coachName)}"></div>
       <div class="field"><label>Objectif hebdo par contrôleur</label><input class="inp" type="number" id="c_week" value="${D.weeklyTarget}"></div>
-      ${Object.keys(D.types).map(k => `<div class="field"><label>${esc(D.types[k].label)} : rencontre superviseur si note ≤</label><input class="inp" type="number" data-th="${k}" value="${D.types[k].supAtOrBelow}"></div>`).join("")}
-      <div class="field"><label>Même erreur : avertissement verbal à</label><input class="inp" type="number" id="c_verbal" value="${D.repeat.verbal}"></div>
-      <div class="field"><label>Même erreur : avertissement écrit à</label><input class="inp" type="number" id="c_written" value="${D.repeat.written}"></div>
-      <div class="field"><label>Rencontre bilan tous les X contrôles</label><input class="inp" type="number" id="c_bilan" value="${D.bilanEvery}"></div>
-      <div class="field"><label>Délai de correction rappelé (heures)</label><input class="inp" type="number" id="c_hours" value="${D.correction.hours}"></div>
+      <div class="field"><label>Erreur récurrente à partir de (fois)</label><input class="inp" type="number" min="2" id="c_rec" value="${D.recurrence || 2}"></div>
     </div>
+    <div style="font-size:13px;color:var(--mute)">Note : Excellent 95 % et plus · Bon 85 à 94 % · À améliorer 70 à 84 % · Insuffisant sous 70 %. Un point ⚠️ échoué plafonne la mention à « À améliorer ».</div>
+  </div>
+
+  <div class="card pad cfgsec" id="importBox"><h2>Ancien historique</h2>
+    <div class="sub">Reconstitue les contrôles de l'ancien système (sous-tâches cochées dans le projet « Contrôle de qualité - Gestionnaire de contenu »). La lecture ne modifie rien dans Asana.${TEST_MODE ? " En mode test, le résultat reste dans ce navigateur." : ""}</div>
+    ${nOld ? `<div class="msg i" style="margin-bottom:12px">${nOld} anciens contrôles sont déjà dans l'outil. Relancer l'import les remplace.</div>` : ""}
+    ${TEST_MODE ? `<div class="field" style="max-width:520px"><label>Ton jeton Asana (lecture seulement, n'est pas conservé)</label><input class="inp mono" type="password" id="imp_tok" placeholder="2/1202…" autocomplete="off"></div>` : ""}
+    <button class="btn" id="impScan">Analyser l'ancien historique</button>
+    <div id="impOut"></div>
   </div>`;
-  // checklists
   m.querySelectorAll("[data-ct]").forEach(b => b.onclick = () => { cfgType = b.dataset.ct; renderCfg(m); });
   m.querySelectorAll(".cfg-pt").forEach(row => {
     const p = pts[+row.dataset.i];
     row.querySelectorAll("[data-f]").forEach(el => el.onchange = el.oninput = () => {
       const k = el.dataset.f;
       if (k === "critical") p.critical = el.checked; else if (k === "active") { p.active = el.checked; row.classList.toggle("off", !el.checked); }
-      else if (k === "notify") { if (el.value) p.notify = el.value; else delete p.notify; } else p[k] = el.value;
+      else if (k === "w") p.w = +el.value; else p[k] = el.value;
     });
     row.querySelectorAll("[data-mv]").forEach(b => b.onclick = () => { const i = +row.dataset.i, j = i + +b.dataset.mv; if (j < 0 || j >= pts.length) return; [pts[i], pts[j]] = [pts[j], pts[i]]; renderCfg(m); });
   });
-  $("#addPt").onclick = () => { pts.push({ id: "p_" + uid(), label: "Nouveau point", desc: "" }); renderCfg(m); };
-  // members
+  $("#addPt").onclick = () => { pts.push({ id: "p_" + uid(), label: "Nouveau point", desc: "", tip: "", w: 2 }); renderCfg(m); };
   m.querySelectorAll("[data-mi]").forEach(tr => { const x = D.members[+tr.dataset.mi]; tr.querySelectorAll("[data-m]").forEach(el => el.onchange = el.oninput = () => { const k = el.dataset.m; x[k] = k === "active" ? el.checked : el.value; }); });
   $("#addMem").onclick = () => { D.members.push({ id: "m_" + uid(), name: "", gid: "", active: true }); renderCfg(m); };
-  // admins & rules
   m.querySelectorAll("[data-adm]").forEach(cb => cb.onchange = () => { const g = cb.dataset.adm; D.admins = cb.checked ? [...new Set([...D.admins, g])] : D.admins.filter(x => x !== g); cb.parentElement.classList.toggle("on", cb.checked); });
-  const num = (id, fn) => $(id).oninput = e => fn(+e.target.value);
-  $("#c_sup").onchange = e => D.supervisorGid = e.target.value;
-  $("#c_coach").oninput = e => D.coachName = e.target.value;
-  num("#c_week", v => D.weeklyTarget = v); num("#c_verbal", v => D.repeat.verbal = v); num("#c_written", v => D.repeat.written = v);
-  num("#c_bilan", v => D.bilanEvery = v); num("#c_hours", v => D.correction.hours = v);
-  m.querySelectorAll("[data-th]").forEach(el => el.oninput = () => D.types[el.dataset.th].supAtOrBelow = +el.value);
+  $("#c_week").oninput = e => D.weeklyTarget = +e.target.value;
+  $("#c_rec").oninput = e => D.recurrence = Math.max(2, +e.target.value || 2);
   $("#resetCfg").onclick = () => { D = clone(S.cfg); renderCfg(m); };
   $("#saveCfg").onclick = async () => {
     if (!D.admins.includes(S.me.gid) && !confirm("Tu te retires des administrateurs. Continuer ?")) return;
@@ -1192,6 +1203,135 @@ async function renderCfg(m) {
     const b = $("#saveCfg"); b.disabled = true; b.innerHTML = '<div class="spin"></div>Enregistrement…';
     try { await saveConfig(clone(D)); S.isAdmin = S.cfg.admins.includes(S.me.gid); toast("Configuration enregistrée."); S.form = null; D = null; if (!S.isAdmin) location.reload(); else renderCfg(m); }
     catch (e) { toast("Erreur : " + e.message, 5000); b.disabled = false; b.textContent = "Enregistrer"; }
+  };
+  $("#impScan").onclick = () => scanOld(m);
+}
+
+/* =====================================================================
+   IMPORT DE L'ANCIEN HISTORIQUE (lecture seule dans Asana)
+   ===================================================================== */
+const OLD_MAP = {
+  opti: [["assign", ["assign"]], ["banniere", ["banniere"]], ["page411", ["411"]], ["cid", ["cid"]], ["captures", ["capture"]], ["profil", ["profil"]], ["nap", ["adresse", "telephone"]], ["motscles", ["mots"]], ["web", ["site web", "reseaux"]], ["zone", ["zone"]], ["heures", ["heure"]], ["attributs", ["attribut"]], ["services", ["service"]], ["produits", ["produit"]], ["reservations", ["reservation"]], ["photos", ["photo"]], ["publications", ["publication"]], ["analytics", ["analytic"]], ["shortlink", ["short", "qr"]], ["avis", ["avis"]], ["activite", ["activite"]], ["fermeture", ["fermeture"]]],
+  reopt: [["r_nom", ["nom"]], ["r_nap", ["adresse", "telephone"]], ["r_heures", ["heure"]], ["r_web", ["site", "lien"]], ["r_pub", ["publication"]], ["r_photos", ["photo"]], ["r_avis", ["avis"]], ["r_activite", ["activite"]], ["r_fermeture", ["fermeture"]]]
+};
+const norm = (t) => String(t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
+function mapOldPoint(type, name) {
+  const n = norm(name);
+  for (const [id, keys] of OLD_MAP[type]) if (keys.some(k => n.includes(k))) return id;
+  return "old_" + n.replace(/ /g, "_").slice(0, 30);
+}
+function mapOldMember(v) {
+  const n = norm(v); if (!n) return null;
+  if (n.includes("moukhtari") || n.startsWith("fatima 1")) return memberById("fatima1");
+  if (n.includes("zohra") || n.startsWith("fatima 2")) return memberById("fatima2");
+  return S.cfg.members.find(m => n.startsWith(norm(m.name).split(" ")[0])) || null;
+}
+async function readApi(tok, path) {
+  const res = await fetch(API + path, { headers: { Authorization: "Bearer " + tok, Accept: "application/json" } });
+  let j = null; try { j = await res.json(); } catch (e) { }
+  if (!res.ok) { const er = new Error(j?.errors?.[0]?.message || ("Erreur Asana " + res.status)); er.status = res.status; throw er; }
+  return j;
+}
+async function readAll(tok, path) {
+  let out = [], offset = null; const sep = path.includes("?") ? "&" : "?";
+  do { const j = await readApi(tok, path + sep + "limit=100" + (offset ? "&offset=" + encodeURIComponent(offset) : "")); out = out.concat(j.data || []); offset = j.next_page?.offset || null; } while (offset);
+  return out;
+}
+let IMPORT = null;
+async function scanOld(m) {
+  const out = $("#impOut"); const btn = $("#impScan");
+  const tok = TEST_MODE ? ($("#imp_tok")?.value || "").trim() : S.token;
+  if (!tok) { out.innerHTML = `<div class="msg e">Colle ton jeton Asana pour lire l'ancien historique.</div>`; return; }
+  btn.disabled = true; btn.innerHTML = '<div class="spin"></div>Lecture…';
+  const say = (t) => out.innerHTML = `<div class="loading" style="padding:16px 0"><div class="spin d"></div>${esc(t)}</div>`;
+  try {
+    say("Lecture de la liste des anciens contrôles…");
+    const fields = "name,created_at,custom_fields.name,custom_fields.display_value";
+    const tasks = await readAll(tok, `/projects/${PROJECT}/tasks?opt_fields=${fields}`);
+    const ctrl = tasks.filter(t => /contr[oô]le de qualit[ée]\s*-\s*(r[ée])?optimisation/i.test(t.name || "") && !/exemple/i.test(t.name || ""));
+    const recs = []; const skipped = []; let done = 0;
+    const keys = { opti: [], reopt: [] }; const keyIdx = { opti: {}, reopt: {} };
+    const work = async (t) => {
+      const cf = {}; (t.custom_fields || []).forEach(c => cf[norm(c.name)] = c.display_value);
+      try {
+        const subs = (await readApi(tok, `/tasks/${t.gid}/subtasks?opt_fields=name`)).data || [];
+        const ev = subs.find(x => /^\s*[ée]valuation/i.test(x.name || ""));
+        if (!ev) { skipped.push([t.name, "pas de checklist"]); return; }
+        const pts = (await readApi(tok, `/tasks/${ev.gid}/subtasks?opt_fields=name,completed`)).data || [];
+        if (pts.length < 5) { skipped.push([t.name, "checklist incomplète"]); return; }
+        const completed = pts.filter(p => p.completed).length;
+        if (completed === 0) { skipped.push([t.name, "aucun point coché (contrôle jamais fait)"]); return; }
+        const mem = mapOldMember(cf["optimisation realisee par"]);
+        if (!mem) { skipped.push([t.name, "membre non indiqué"]); return; }
+        const type = /r[ée]optimisation/i.test(t.name) ? "reopt" : "opti";
+        let res = {};
+        for (const p of pts) {
+          const id = mapOldPoint(type, p.name);
+          if (keyIdx[type][id] === undefined) { keyIdx[type][id] = keys[type].length; keys[type].push([id, (S.cfg.checklists[type].find(x => x.id === id)?.label) || String(p.name).replace("⚠️", "").trim()]); }
+          res[id] = p.completed ? "o" : "e";
+        }
+        const sc = cf["score sur 22"] != null && cf["score sur 22"] !== "" ? +cf["score sur 22"] : null;
+        const status = sc == null ? "noscore" : sc === completed ? "verified" : "mismatch";
+        const nm = String(t.name).split(":").slice(1).join(":").trim() || t.name;
+        const idm = nm.match(/^(\d{3,6})\s*-?\s*/);
+        const date = (cf["date que le controle a ete effectuer"] || t.created_at || "").slice(0, 10);
+        recs.push({ type, clientId: idm ? idm[1] : "", clientName: (idm ? nm.slice(idm[0].length) : nm).replace(/\s+COMMERCIAL\s*$/i, "").trim(), memberId: mem.id, memberName: mem.name, controllerName: cf["controle fait par"] || "", date, res, status, oldScore: sc, comment: cf["note de gougoux"] || "", src: t.gid });
+      } catch (e) { if (e.status === 401) throw e; skipped.push([t.name, "erreur de lecture"]); }
+      finally { done++; if (done % 5 === 0 || done === ctrl.length) say(`Analyse des anciens contrôles : ${done} / ${ctrl.length}`); }
+    };
+    let i = 0; const runners = Array.from({ length: 4 }, async () => { while (i < ctrl.length) await work(ctrl[i++]); });
+    await Promise.all(runners);
+    IMPORT = { keys, recs, skipped, found: ctrl.length };
+    renderImportSummary(m);
+  } catch (e) {
+    out.innerHTML = `<div class="msg e">${e.status === 401 ? "Jeton refusé par Asana." : esc(e.message)}</div>`;
+  }
+  btn.disabled = false; btn.textContent = "Relancer l'analyse";
+}
+function packImport(recs) {
+  const keys = IMPORT.keys;
+  return { v: 1, keys, recs: recs.map(r => [r.type, r.clientId, r.clientName, r.memberId, r.memberName, r.controllerName, r.date, keys[r.type].map(([id]) => r.res[id] || "-").join(""), r.status, r.oldScore, r.comment, r.src]) };
+}
+function renderImportSummary(m) {
+  const I = IMPORT; const out = $("#impOut");
+  const cnt = (st) => I.recs.filter(r => r.status === st).length;
+  const sel = () => I.recs.filter(r => (r.status === "verified" && $("#imp_v").checked) || (r.status === "noscore" && $("#imp_n").checked) || (r.status === "mismatch" && $("#imp_m").checked));
+  const preview = () => {
+    const recs = expandImport(packImport(sel()), "preview");
+    const ps = pointStats(recs).slice(0, 6);
+    $("#impPrev").innerHTML = `<div style="font-weight:600;margin:14px 0 6px">${recs.length} contrôles retenus · erreurs les plus fréquentes :</div>` +
+      (ps.map((p, i) => `<div class="res"><span class="st err">${p.err}×</span><div><b>${esc(p.label)}</b> <span style="color:var(--mute)">· ${pct(p.err, p.appl)} % des contrôles · ${Object.entries(p.who).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([w, c]) => esc(w) + " ×" + c).join(", ")}</span></div></div>`).join("") || "Aucune erreur.");
+  };
+  out.innerHTML = `<div style="margin-top:16px">
+    <div class="kpis" style="grid-template-columns:repeat(4,1fr)">
+      <div class="card kpi"><div class="l">Anciens contrôles</div><div class="v">${I.found}</div></div>
+      <div class="card kpi"><div class="l">Vérifiés</div><div class="v" style="color:var(--ok)">${cnt("verified")}</div><div class="s">cases cochées = note inscrite</div></div>
+      <div class="card kpi"><div class="l">Sans note inscrite</div><div class="v">${cnt("noscore")}</div><div class="s">reconstitués des cases</div></div>
+      <div class="card kpi"><div class="l">Écartés</div><div class="v" style="color:var(--mute)">${I.skipped.length + cnt("mismatch")}</div><div class="s">${cnt("mismatch")} note ≠ cases · ${I.skipped.length} incomplets</div></div>
+    </div>
+    <label class="check"><input type="checkbox" id="imp_v" checked> Inclure les ${cnt("verified")} contrôles vérifiés</label>
+    <label class="check"><input type="checkbox" id="imp_n" checked> Inclure les ${cnt("noscore")} contrôles sans note inscrite (fiables si la personne cochait bien les cases)</label>
+    <label class="check"><input type="checkbox" id="imp_m"> Inclure les ${cnt("mismatch")} contrôles où la note inscrite ne correspond pas aux cases cochées</label>
+    <div id="impPrev"></div>
+    ${I.skipped.length ? `<details style="margin-top:10px;font-size:13px;color:var(--mute)"><summary>Voir les ${I.skipped.length} contrôles ignorés</summary>${I.skipped.map(([n, why]) => `<div>${esc(n)} : ${esc(why)}</div>`).join("")}</details>` : ""}
+    <button class="btn" id="impSave" style="margin-top:14px">Ajouter à l'outil</button>
+    ${TEST_MODE ? `<div style="font-size:12px;color:var(--mute);margin-top:6px">Mode test : l'ancien historique est gardé dans ce navigateur seulement. En mode réel, il sera archivé dans la section Historique.</div>` : ""}
+  </div>`;
+  ["#imp_v", "#imp_n", "#imp_m"].forEach(id => $(id).onchange = preview);
+  preview();
+  $("#impSave").onclick = async () => {
+    const recs = sel(); if (!recs.length) return toast("Aucun contrôle sélectionné.");
+    const b = $("#impSave"); b.disabled = true; b.innerHTML = '<div class="spin"></div>Enregistrement…';
+    try {
+      for (const t of [...new Set(S.records.filter(r => r.imported).map(r => r.importTask))]) await api("DELETE", `/tasks/${t}`);
+      const chunks = []; for (let i = 0; i < recs.length; i += 80) chunks.push(recs.slice(i, i + 80));
+      for (let i = 0; i < chunks.length; i++) {
+        const data = packImport(chunks[i]);
+        const j = await api("POST", "/tasks", { name: `📦 Ancien historique importé ${i + 1}/${chunks.length} (ne pas supprimer)`, projects: [PROJECT], completed: true, html_notes: `<body><h2>Ancien historique du contrôle de qualité</h2>${chunks[i].length} contrôles de l'ancien système, reconstitués à partir des sous-tâches. Utilisé par l'outil Contrôle de qualité 2.0. <strong>Ne pas modifier.</strong><hr/><pre>QCIMPORT:${xml(JSON.stringify(data))}</pre></body>` });
+        await api("POST", `/sections/${HIST}/addTask`, { task: j.data.gid });
+      }
+      await loadRecords(); S.dash.old = true; toast(`${recs.length} anciens contrôles ajoutés.`); go("dash");
+    } catch (e) { toast("Erreur : " + e.message, 5000); b.disabled = false; b.textContent = "Ajouter à l'outil"; }
   };
 }
 
