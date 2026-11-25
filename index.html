@@ -88,7 +88,8 @@ nav.side{background:var(--card);border-right:1px solid var(--line);padding:22px 
 .week b{color:var(--ink)}
 .week .bar{height:7px;border-radius:9px;background:#E1E3EE;margin-top:8px;overflow:hidden}
 .week .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--brand),var(--rem));border-radius:9px}
-main{padding:58px 40px 80px;min-width:0;max-width:1400px}
+main{padding:24px 40px 80px;min-width:0}
+.head{padding-right:54px}
 .head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:22px;flex-wrap:wrap}
 .head h1{font-size:30px;font-weight:800;line-height:1.1}
 .head p{margin:6px 0 0;color:var(--mute)}
@@ -256,6 +257,96 @@ table.t tr.click:hover td{background:var(--paper)}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
+
+/* ---------- identité : barre latérale RDPQ ---------- */
+main{max-width:none}
+nav.side{background:linear-gradient(170deg,#2E2E96 0%,#23237A 55%,#1B1B62 100%);border-right:0;color:#C9CBEF;overflow:hidden}
+nav.side::after{content:"";position:absolute;width:220px;height:220px;border-radius:50%;border:34px solid rgba(255,255,255,.04);bottom:-90px;right:-110px;pointer-events:none}
+.brand span{color:rgba(255,255,255,.62)}
+.brand .brandbar{margin-top:2px}
+.navbtn{color:#CDD0F3}
+.navbtn:hover{background:rgba(255,255,255,.08);color:#fff}
+.navbtn.on{background:#fff;color:var(--brand);box-shadow:0 10px 24px -12px rgba(0,0,0,.5)}
+.navbtn.primary:not(.on){background:rgba(255,255,255,.1);color:#fff}
+.navbtn.primary:not(.on):hover{background:rgba(255,255,255,.16)}
+.week{background:rgba(255,255,255,.07);color:#C9CBEF;border:1px solid rgba(255,255,255,.08)}
+.week b{color:#fff}
+.week .bar{background:rgba(255,255,255,.14)}
+.week .bar i{background:linear-gradient(90deg,#F8B800,#28B040)}
+.side .me{border-top-color:rgba(255,255,255,.12);color:rgba(255,255,255,.6)}
+.side .me b{color:#fff}
+.side .role{background:rgba(255,255,255,.14);color:#fff}
+.side .btn.ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.25)}
+.side .btn.ghost:hover{border-color:#fff;color:#fff}
+:root[data-theme=dark] nav.side{background:linear-gradient(170deg,#1C1C5C 0%,#141440 100%)}
+:root[data-theme=dark] .navbtn.on{background:#ECEDF8;color:#1C1C5C}
+
+/* ---------- en-tête signature ---------- */
+.hero{position:relative;overflow:hidden;border-radius:22px;background:linear-gradient(120deg,#2B2B8E 0%,#23237A 60%,#1F1F6C 100%);color:#fff;padding:28px 30px 24px;margin-bottom:20px;box-shadow:0 24px 50px -32px rgba(41,41,138,.8)}
+.hero .shapes{position:absolute;right:-10px;top:-10px;height:calc(100% + 20px);width:auto;pointer-events:none}
+.hero .ht{position:relative;z-index:1;display:flex;justify-content:space-between;gap:18px;align-items:flex-start;flex-wrap:wrap}
+.hero h1{color:#fff;font-size:30px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.hero p{margin:6px 0 0;color:rgba(255,255,255,.72);max-width:640px}
+.hero .btn.ghost{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.22);backdrop-filter:blur(4px)}
+.hero .btn.ghost:hover{background:rgba(255,255,255,.18);border-color:#fff;color:#fff}
+.hkpis{position:relative;z-index:1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:22px;max-width:calc(100% - 180px)}
+.hk{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:14px 16px;backdrop-filter:blur(6px)}
+.hk .l{font-size:12.5px;font-weight:700;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:7px}
+.hk .l::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--c,#fff)}
+.hk .v{font-size:30px;font-weight:800;letter-spacing:-.03em;line-height:1.15;margin-top:4px;font-variant-numeric:tabular-nums}
+.hk .v small{font-size:16px;opacity:.7;margin-left:2px}
+.hk .s{font-size:12px;color:rgba(255,255,255,.6)}
+:root[data-theme=dark] .hero{background:linear-gradient(120deg,#20206A 0%,#18184E 100%)}
+
+/* ---------- avatars & mini jauges ---------- */
+.av{width:32px;height:32px;border-radius:50%;display:inline-grid;place-items:center;font-size:12px;font-weight:800;color:#fff;flex:none;letter-spacing:.02em;box-shadow:0 0 0 2px var(--card)}
+.av.sm{width:22px;height:22px;font-size:9.5px}
+.av.lg{width:44px;height:44px;font-size:15px}
+.who .wh{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--ink2);background:var(--paper);border-radius:99px;padding:2px 9px 2px 2px}
+.mring{flex:none}
+.mring text{font-family:inherit;font-weight:800;fill:var(--ink)}
+
+/* ---------- historique par mois ---------- */
+.month{display:flex;align-items:baseline;gap:12px;margin:26px 4px 10px}
+.month:first-child{margin-top:4px}
+.month h3{font-size:16px;font-weight:800;text-transform:capitalize}
+.month span{font-size:13px;color:var(--mute)}
+.month .line{flex:1;height:1px;background:var(--line);align-self:center}
+.hlist{display:flex;flex-direction:column;gap:8px}
+.hrow{display:grid;grid-template-columns:54px minmax(170px,1.1fr) minmax(200px,1.6fr) minmax(160px,1.6fr) 64px;gap:16px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 16px;cursor:pointer;transition:transform .12s,box-shadow .12s,border-color .12s;text-align:left;width:100%;font:inherit;color:inherit}
+.hrow:hover{transform:translateY(-1px);box-shadow:var(--shadow);border-color:var(--line2)}
+.hdate{text-align:center;border-radius:12px;background:var(--paper);padding:6px 0;line-height:1.1}
+.hdate b{display:block;font-size:19px;font-weight:800;font-variant-numeric:tabular-nums}
+.hdate span{font-size:11px;font-weight:700;color:var(--mute);text-transform:uppercase}
+.hmem{display:flex;align-items:center;gap:10px;font-weight:700;font-size:14px}
+.hmem small{display:block;font-weight:500;color:var(--mute);font-size:12px}
+.hcli b{font-size:14.5px}
+.hcli .sub{font-size:12px;color:var(--mute);display:flex;gap:8px;align-items:center;margin-top:2px;flex-wrap:wrap}
+.echips{display:flex;gap:5px;flex-wrap:wrap}
+.echip{font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:99px;background:var(--errbg);color:var(--t-err);white-space:nowrap}
+.echip.rem{background:var(--rembg);color:var(--t-rem)}
+.echip.more{background:var(--nabg);color:var(--mute)}
+.perfect{font-size:12px;font-weight:700;color:var(--t-ok);display:inline-flex;align-items:center;gap:6px}
+.perfect::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--ok)}
+.oldtag{font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:99px;background:var(--nabg);color:var(--mute)}
+
+/* ---------- cartes membres ---------- */
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin-bottom:18px}
+.mcard{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px 18px;cursor:pointer;transition:transform .12s,box-shadow .12s;text-align:left;font:inherit;color:inherit;width:100%}
+.mcard:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.mcard .top{display:flex;align-items:center;gap:12px}
+.mcard .nm{font-weight:800;font-size:15px}
+.mcard .st{font-size:12px;color:var(--mute)}
+.mcard .chips{margin-top:12px;display:flex;gap:5px;flex-wrap:wrap}
+.mcard .bar{height:6px;border-radius:9px;background:var(--nabg);margin-top:12px;overflow:hidden;display:flex}
+.mcard .bar i{display:block;height:100%}
+.sect-h{display:flex;align-items:baseline;justify-content:space-between;margin:6px 4px 12px}
+.sect-h h2{font-size:18px;font-weight:800}
+.sect-h span{font-size:12px;color:var(--mute)}
+.alert .av{margin-top:1px}
+
+@media (max-width:1100px){.hkpis{grid-template-columns:repeat(2,minmax(0,1fr));max-width:none}.hrow{grid-template-columns:54px 1fr 64px}.hrow .hcli{grid-column:2}.hrow .echips{grid-column:1/-1}.hrow .hmem{grid-column:2}}
+
 /* ---------- thème sombre ---------- */
 :root[data-theme=dark]{
   color-scheme:dark;
@@ -276,6 +367,10 @@ table.t tr.click:hover td{background:var(--paper)}
 .themebtn{position:fixed;top:12px;right:16px;z-index:45;width:38px;height:38px;border-radius:12px;border:1.5px solid var(--line2);background:var(--card);color:var(--ink2);display:grid;place-items:center;box-shadow:var(--shadow);transition:all .15s}
 .themebtn:hover{color:var(--brand);border-color:var(--brand)}
 .themebtn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+body.has-hero #app:not(.hide) ~ .x, body.has-hero .themebtn{display:none}
+#login:not(.hide) ~ .themebtn{display:grid}
+.themein{padding:7px 9px}.themein svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.themein .sun{display:none}:root[data-theme=dark] .themein .sun{display:block}:root[data-theme=dark] .themein .moon{display:none}
 .themebtn .sun{display:none}:root[data-theme=dark] .themebtn .sun{display:block}:root[data-theme=dark] .themebtn .moon{display:none}
 </style>
 </head>
@@ -317,7 +412,7 @@ table.t tr.click:hover td{background:var(--paper)}
 <!-- ================= APP ================= -->
 <section id="app" class="hide">
   <nav class="side">
-    <div class="brand"><img class="logo-light" src="logo.png" alt="RDPQ"><img class="logo-dark" src="logo-dark.png" alt="RDPQ"><span>Contrôle de qualité · DPC</span></div>
+    <div class="brand"><img src="logo-dark.png" alt="RDPQ" style="display:block"><div class="brandbar" aria-hidden="true"><i></i><i></i><i></i><i></i></div><span>Contrôle de qualité · DPC</span></div>
     <button class="navbtn primary" data-v="new"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Nouveau contrôle</button>
     <button class="navbtn" data-v="dash"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Erreurs fréquentes</button>
     <button class="navbtn" data-v="hist"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg>Historique</button>
@@ -423,7 +518,7 @@ const S = {
 /* ---------------- utils ---------------- */
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const xml = esc;
+const xml = (v) => String(v ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); // Asana ne décode pas &#39;
 const todayStr = () => new Date().toLocaleDateString("en-CA");
 const fmtDate = (d) => { if (!d) return ""; const [y, m, dd] = d.split("-"); return `${dd}/${m}/${y}`; };
 const pct = (s, t) => t ? Math.round(s / t * 100) : 0;
@@ -572,6 +667,7 @@ async function getAll(path) {
 }
 function extractJSON(notes, marker) {
   if (!notes) return null;
+  notes = String(notes).replace(/&#39;/g, "'").replace(/&apos;/g, "'");
   const i = notes.lastIndexOf(marker);
   if (i < 0) return null;
   let s = notes.slice(i + marker.length);
@@ -793,12 +889,32 @@ function bindTestBanner() {
 }
 function render() {
   const m = $("#main");
+  document.body.classList.toggle("has-hero", S.view !== "new");
   if (S.view === "new") return renderForm(m);
   if (!S.loaded) { m.innerHTML = '<div class="loading"><div class="spin d"></div>Chargement des contrôles depuis Asana…</div>'; return; }
   if (S.view === "dash") return renderDash(m);
   if (S.view === "hist") return renderHist(m);
   if (S.view === "cfg") return renderCfg(m);
 }
+
+
+/* ---------------- éléments visuels ---------------- */
+const AV_COLORS = ["#F05848", "#E0A100", "#28B040", "#5088F8", "#8B5CF6", "#0EA5A4", "#D9488F", "#3A3AB0"];
+function initials(n) { const p = String(n || "?").replace(/\(.*?\)/g, "").trim().split(/\s+/); return ((p[0] || "?")[0] + (p.length > 1 ? p[p.length - 1][0] : (p[0] || "")[1] || "")).toUpperCase(); }
+function avColor(n) { let h = 0; for (const c of String(n)) h = (h * 31 + c.charCodeAt(0)) >>> 0; return AV_COLORS[h % AV_COLORS.length]; }
+function avatar(n, cls = "") { return `<span class="av ${cls}" style="background:${avColor(n)}" title="${esc(n)}">${esc(initials(n))}</span>`; }
+function mring(score, total, size = 46, crit) {
+  const p = total ? score / total : 0, r = size / 2 - 5, c = 2 * Math.PI * r;
+  const col = crit && p >= .85 ? "var(--warn)" : p >= .85 ? "var(--ok)" : p >= .7 ? "var(--warn)" : "var(--err)";
+  return `<svg class="mring" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-label="${Math.round(p * 100)} %"><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="var(--nabg)" stroke-width="5"/><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="${col}" stroke-width="5" stroke-linecap="round" stroke-dasharray="${c * p} ${c}" transform="rotate(-90 ${size / 2} ${size / 2})"/><text x="50%" y="53%" dominant-baseline="middle" text-anchor="middle" font-size="${size > 40 ? 12 : 10}">${Math.round(p * 100)}</text></svg>`;
+}
+const HERO_SHAPES = `<svg class="shapes" viewBox="0 0 340 220" aria-hidden="true"><g opacity=".95"><path d="M215 -10 L255 -10 L315 110 L275 110 Z" fill="#F05848"/><path d="M200 150 a70 70 0 0 1 70 -70 l0 38 a32 32 0 0 0 -32 32 Z" fill="#F8B800"/><rect x="262" y="-20" width="110" height="38" rx="19" fill="#28B040"/><path d="M300 160 L338 160 L360 200 L322 200 Z" fill="#5088F8"/></g><circle cx="150" cy="210" r="60" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="22"/></svg>`;
+function hero(title, sub, right = "", below = "") {
+  const tb = `<button class="btn ghost sm themein" title="Mode sombre / clair" aria-label="Basculer le mode sombre" onclick="document.getElementById('themeBtn').click()">${document.getElementById("themeBtn").innerHTML}</button>`;
+  return `<section class="hero">${HERO_SHAPES}<div class="ht"><div><h1>${title}</h1>${sub ? `<p>${sub}</p>` : ""}</div><div class="row" style="position:relative;z-index:1;margin-right:150px">${right}${tb}</div></div>${below}</section>`;
+}
+const MONTHS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
+const MONTHS_S = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
 
 /* =====================================================================
    NOUVEAU CONTRÔLE
@@ -1045,9 +1161,15 @@ function renderDash(m) {
   const nNew = S.records.filter(r => !r.imported).length, nOld = S.records.length - nNew;
   const firstNew = S.records.filter(r => !r.imported).map(r => r.date).sort()[0];
   const members = S.cfg.members;
+  const sub = `${nNew ? `${nNew} contrôle${nNew > 1 ? "s" : ""} faits avec l'outil` : "Aucun contrôle encore fait avec l'outil"}${nOld ? ` · ${nOld} de l'ancien système ${f.old ? "inclus" : "masqués"}` : ""}. Clique sur une erreur pour voir chaque cas.`;
+  const kp = n ? `<div class="hkpis">
+      <div class="hk" style="--c:#5088F8"><div class="l">Contrôles</div><div class="v">${n}</div><div class="s">${withErr} avec au moins une erreur</div></div>
+      <div class="hk" style="--c:#28B040"><div class="l">Score moyen</div><div class="v">${avg}<small>%</small></div><div class="s">${recs.filter(r => r.score === r.total).length} contrôle(s) parfait(s)</div></div>
+      <div class="hk" style="--c:#F05848"><div class="l">Erreurs relevées</div><div class="v">${ps.reduce((s, p) => s + p.err, 0)}</div><div class="s">sur ${ps.length} point(s) différent(s)</div></div>
+      <div class="hk" style="--c:#F8B800"><div class="l">Points critiques échoués</div><div class="v">${crit}</div><div class="s">profil, nom, adresse, téléphone</div></div>
+    </div>` : "";
   m.innerHTML = `
-  <div class="head"><div><h1>Erreurs fréquentes</h1><p>${nNew ? `${nNew} contrôle${nNew > 1 ? "s" : ""} faits avec l'outil depuis le ${esc(fmtDate(firstNew))}` : "Aucun contrôle encore fait avec l'outil"}${nOld ? ` · ${nOld} contrôle${nOld > 1 ? "s" : ""} de l'ancien système ${f.old ? "inclus" : "masqués"}` : ""}.</p></div>
-    <div class="row">${S.isAdmin ? `<button class="btn ghost sm" id="reportBtn">Copier le rapport</button>` : ""}<button class="btn ghost sm" id="refreshBtn">↻ Actualiser</button></div></div>
+  ${hero("Erreurs fréquentes", sub, `${S.isAdmin ? `<button class="btn ghost sm" id="reportBtn">Copier le rapport</button>` : ""}<button class="btn ghost sm" id="refreshBtn">↻ Actualiser</button>`, kp)}
   <div class="filters">
     <div class="chips">${PERIODS.map(([k, l]) => `<button class="chip ${f.period === k ? "on" : ""}" data-p="${k}">${l}</button>`).join("")}</div>
     ${f.period === "custom" ? `<input type="date" class="inp sm" id="d_from" value="${esc(f.from)}"><span style="color:var(--mute)">au</span><input type="date" class="inp sm" id="d_to" value="${esc(f.to)}">` : ""}
@@ -1056,35 +1178,29 @@ function renderDash(m) {
     ${nOld ? `<label class="chip ${f.old ? "on" : ""}" style="cursor:pointer"><input type="checkbox" id="d_old" ${f.old ? "checked" : ""} style="display:none">Inclure l'ancien historique</label>` : ""}
   </div>
   ${!n ? `<div class="card empty"><b>Rien à afficher pour ce filtre</b>Les erreurs récurrentes apparaîtront ici dès les premiers contrôles.</div>` : `
-  <div class="kpis">
-    <div class="card kpi"><div class="l">Contrôles</div><div class="v">${n}</div><div class="s">${withErr} avec au moins une erreur</div></div>
-    <div class="card kpi"><div class="l">Score moyen</div><div class="v">${avg}<span style="font-size:20px">%</span></div><div class="s">${recs.filter(r => r.score === r.total).length} contrôle(s) parfait(s)</div></div>
-    <div class="card kpi"><div class="l">Erreurs relevées</div><div class="v">${ps.reduce((s, p) => s + p.err, 0)}</div><div class="s">sur ${ps.length} point(s) différent(s)</div></div>
-    <div class="card kpi"><div class="l">Points ⚠️ échoués</div><div class="v" style="color:${crit ? "var(--err)" : "inherit"}">${crit}</div><div class="s">profil, nom, adresse, téléphone</div></div>
-  </div>
   <div class="grid2">
     <div class="card pad">
-      <div class="sect-t"><h2>Top des erreurs récurrentes</h2><span>clique pour voir les cas</span></div>
-      <div class="rank">${ps.slice(0, 12).map((p, i) => `<button class="rk" data-k="${esc(p.key)}">
+      <div class="sect-t"><h2>Top des erreurs récurrentes</h2><span>${ps.length} point(s) en erreur</span></div>
+      <div class="rank">${ps.slice(0, 10).map((p, i) => `<button class="rk" data-k="${esc(p.key)}">
         <span class="i">${i + 1}</span>
-        <div><div class="nm"><span>${esc(p.label)}${p.crit ? " ⚠️" : ""}${f.type === "all" ? ` <span class="tag">${esc(S.cfg.types[p.type]?.label || p.type)}</span>` : ""}</span><em>${pct(p.err, p.appl)} % des contrôles${p.rem ? ` · +${p.rem} remarque${p.rem > 1 ? "s" : ""}` : ""}</em></div>
+        <div><div class="nm"><span>${esc(p.label)}${p.crit ? " ⚠️" : ""}${f.type === "all" && p.type !== "opti" ? ` <span class="tag">${esc(S.cfg.types[p.type]?.label || p.type)}</span>` : ""}</span><em>${pct(p.err, p.appl)} % des contrôles${p.rem ? ` · +${p.rem} remarque${p.rem > 1 ? "s" : ""}` : ""}</em></div>
           <div class="track"><i style="width:${p.err / maxErr * 100}%"></i></div>
-          <div class="who">${Object.entries(p.who).sort((a, b) => b[1] - a[1]).map(([w, c]) => `<span class="tag">${esc(w)} ×${c}</span>`).join("")}</div></div>
+          <div class="who">${Object.entries(p.who).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([w, c]) => `<span class="wh">${avatar(w, "sm")}×${c}</span>`).join("")}</div></div>
         <span class="ct">${p.err}</span></button>`).join("") || `<div class="empty" style="padding:20px">Aucune erreur sur cette période 🎉</div>`}</div>
     </div>
     <div style="display:flex;flex-direction:column;gap:18px">
       <div class="card pad"><div class="sect-t"><h2>Points à travailler</h2><span>même erreur ${S.cfg.recurrence || 2} fois ou plus</span></div>
-        ${al.length ? al.slice(0, 10).map(a => `<div class="alert"><span class="pill v">×${a.n}</span><div><b>${esc(a.m)}</b> · ${esc(a.label)}<br><span style="color:var(--mute);font-size:13px">${esc(a.tip)}</span></div></div>`).join("") + (al.length > 10 ? `<div style="color:var(--mute);font-size:13px;padding-top:8px">+ ${al.length - 10} autre(s). Filtre par membre pour tout voir.</div>` : "") : `<div style="color:var(--mute);font-size:14px">Aucune erreur répétée sur cette période.</div>`}
+        ${al.length ? al.slice(0, 8).map(a => `<div class="alert">${avatar(a.m)}<div style="flex:1"><div style="display:flex;justify-content:space-between;gap:8px"><b>${esc(a.m)}</b><span class="pill v">×${a.n}</span></div><div style="font-weight:600;font-size:13.5px">${esc(a.label)}</div><div style="color:var(--mute);font-size:13px">${esc(a.tip)}</div></div></div>`).join("") + (al.length > 8 ? `<div style="color:var(--mute);font-size:13px;padding-top:8px">+ ${al.length - 8} autre(s). Filtre par membre pour tout voir.</div>` : "") : `<div style="color:var(--mute);font-size:14px">Aucune erreur répétée sur cette période.</div>`}
       </div>
       <div class="card pad trend"><div class="sect-t"><h2>Tendance</h2><span>score moyen, 12 dernières semaines</span></div>${trendSvg()}</div>
     </div>
   </div>
-  <div class="card pad" style="margin-bottom:18px">
-    <div class="sect-t"><h2>Par membre</h2><span>du score le plus bas au plus haut</span></div>
-    <table class="t"><thead><tr><th>Membre</th><th>Contrôles</th><th>Score moyen</th><th>Parfaits</th><th>⚠️</th><th>Erreurs les plus fréquentes</th><th>Dernier</th></tr></thead><tbody>
-    ${ms.map(x => { const a = Math.round(x.sum / x.n * 100); const top = Object.entries(x.pts).sort((a, b) => b[1] - a[1]).slice(0, 3); return `<tr class="click" data-mem="${esc(x.id)}"><td><b>${esc(x.name)}</b></td><td class="mono">${x.n}</td><td><span class="score ${a >= 90 ? "s-hi" : a >= 78 ? "s-mid" : "s-lo"}">${a} %</span></td><td class="mono">${x.perfect}</td><td class="mono" style="color:${x.crit ? "var(--err)" : "inherit"}">${x.crit}</td><td>${top.map(([k, c]) => { const [t, id] = k.split(":"); return `<span class="tag">${esc(pointLabel(t, id))} ×${c}</span>`; }).join(" ") || '<span style="color:var(--mute)">aucune</span>'}</td><td>${esc(fmtDate(x.last))}</td></tr>`; }).join("")}
-    </tbody></table>
-  </div>
+  <div class="sect-h"><h2>Par membre</h2><span>clique sur une carte pour filtrer</span></div>
+  <div class="mgrid">${ms.map(x => {
+    const a = Math.round(x.sum / x.n * 100); const top = Object.entries(x.pts).sort((a, b) => b[1] - a[1]).slice(0, 3);
+    return `<button class="mcard" data-mem="${esc(x.id)}"><div class="top">${avatar(x.name, "lg")}<div style="flex:1"><div class="nm">${esc(x.name)}</div><div class="st">${x.n} contrôle${x.n > 1 ? "s" : ""} · ${x.perfect} parfait${x.perfect > 1 ? "s" : ""}${x.crit ? ` · <span style="color:var(--err)">${x.crit} ⚠️</span>` : ""}</div></div>${mring(a, 100, 50)}</div>
+      <div class="chips">${top.map(([k, c]) => { const [t, id] = k.split(":"); return `<span class="echip">${esc(pointLabel(t, id))} ×${c}</span>`; }).join("") || '<span class="perfect">Aucune erreur</span>'}</div></button>`;
+  }).join("")}</div>
   ${heatmap(ms, ps)}`}`;
   m.querySelectorAll("[data-p]").forEach(b => b.onclick = () => { f.period = b.dataset.p; renderDash(m); });
   const dt = $("#d_type"); if (dt) dt.onchange = e => { f.type = e.target.value; renderDash(m); };
@@ -1147,15 +1263,36 @@ function renderHist(m) {
   const h = S.hist; const q = h.q.trim().toLowerCase();
   const recs = S.records.filter(r => (h.old || !r.imported) && (h.type === "all" || r.type === h.type) && (h.member === "all" || r.memberId === h.member) &&
     (!q || `${r.clientId} ${r.clientName} ${r.memberName} ${r.controllerName}`.toLowerCase().includes(q)));
-  m.innerHTML = `<div class="head"><div><h1>Historique</h1><p>${S.records.length} contrôle${S.records.length > 1 ? "s" : ""} enregistrés.${TEST_MODE ? " Mode test : rien n'est dans Asana." : " Chaque ligne est aussi une tâche dans Asana."}</p></div>
-    ${TEST_MODE ? "" : `<a class="btn ghost sm" href="https://app.asana.com/1/1201965898308725/project/${PROJECT}" target="_blank" rel="noopener">Ouvrir le projet Asana ↗</a>`}</div>
-  <div class="filters"><input class="inp sm" id="h_q" placeholder="Rechercher un client, un membre…" value="${esc(h.q)}" style="min-width:260px">
+  const avg = recs.length ? Math.round(recs.reduce((s, r) => s + r.score / r.total, 0) / recs.length * 100) : 0;
+  const mo = new Date(); const curM = ds(new Date(mo.getFullYear(), mo.getMonth(), 1));
+  const nMonth = recs.filter(r => r.date >= curM).length;
+  const kp = `<div class="hkpis">
+    <div class="hk" style="--c:#5088F8"><div class="l">Contrôles affichés</div><div class="v">${recs.length}</div><div class="s">sur ${S.records.length} au total</div></div>
+    <div class="hk" style="--c:#28B040"><div class="l">Score moyen</div><div class="v">${avg}<small>%</small></div><div class="s">${recs.filter(r => r.score === r.total).length} parfait(s)</div></div>
+    <div class="hk" style="--c:#F8B800"><div class="l">Ce mois-ci</div><div class="v">${nMonth}</div><div class="s">${MONTHS[mo.getMonth()]} ${mo.getFullYear()}</div></div>
+    <div class="hk" style="--c:#F05848"><div class="l">Avec point critique</div><div class="v">${recs.filter(r => (r.critical || []).length).length}</div><div class="s">profil, nom, adresse, téléphone</div></div></div>`;
+  const groups = []; let cur = null;
+  for (const r of recs) { const k = r.date.slice(0, 7); if (!cur || cur.k !== k) { cur = { k, items: [] }; groups.push(cur); } cur.items.push(r); }
+  const row = (r) => {
+    const [y, mm, d] = r.date.split("-");
+    const errs = Object.keys(r.results).filter(k => r.results[k] === "err");
+    const rems = Object.keys(r.results).filter(k => r.results[k] === "rem");
+    const chips = [...errs.map(k => `<span class="echip">${esc(r.labels[k] || k)}</span>`), ...rems.map(k => `<span class="echip rem">${esc(r.labels[k] || k)}</span>`)];
+    return `<button class="hrow" data-g="${esc(r.gid)}">
+      <div class="hdate"><b>${+d}</b><span>${MONTHS_S[+mm - 1]}</span></div>
+      <div class="hmem">${avatar(r.memberName)}<div>${esc(r.memberName)}<small>par ${esc(r.controllerName || "-")}</small></div></div>
+      <div class="hcli"><b>${esc(r.clientName)}</b><div class="sub">${r.clientId ? `<span>#${esc(r.clientId)}</span>` : ""}<span>${esc(S.cfg.types[r.type]?.label || r.type)}</span>${r.imported ? '<span class="oldtag">ancien système</span>' : ""}${(r.critical || []).length ? '<span style="color:var(--err);font-weight:700">⚠️ critique</span>' : ""}</div></div>
+      <div class="echips">${chips.slice(0, 3).join("")}${chips.length > 3 ? `<span class="echip more">+${chips.length - 3}</span>` : ""}${!chips.length ? '<span class="perfect">Contrôle parfait</span>' : ""}</div>
+      ${mring(r.score, r.total, 50, (r.critical || []).length > 0)}</button>`;
+  };
+  m.innerHTML = `${hero("Historique", `Tous les contrôles, du plus récent au plus ancien.${TEST_MODE ? " Mode test : rien n'est dans Asana." : " Chaque contrôle est archivé dans Asana."}`, TEST_MODE ? "" : `<a class="btn ghost sm" href="https://app.asana.com/1/1201965898308725/project/${PROJECT}" target="_blank" rel="noopener">Ouvrir le projet Asana ↗</a>`, kp)}
+  <div class="filters"><input class="inp sm" id="h_q" placeholder="Rechercher un client, un membre…" value="${esc(h.q)}" style="min-width:280px">
     <select class="inp sm" id="h_type"><option value="all">Tous les types</option>${Object.keys(S.cfg.types).map(k => `<option value="${k}" ${h.type === k ? "selected" : ""}>${esc(S.cfg.types[k].label)}</option>`).join("")}</select>
     <select class="inp sm" id="h_member"><option value="all">Toute l'équipe</option>${S.cfg.members.map(x => `<option value="${esc(x.id)}" ${h.member === x.id ? "selected" : ""}>${esc(x.name)}</option>`).join("")}</select>
     ${S.records.some(r => r.imported) ? `<label class="chip ${h.old ? "on" : ""}" style="cursor:pointer"><input type="checkbox" id="h_old" ${h.old ? "checked" : ""} style="display:none">Inclure l'ancien historique</label>` : ""}</div>
-  <div class="card">${recs.length ? `<table class="t"><thead><tr><th>Date</th><th>Client</th><th>Type</th><th>Réalisée par</th><th>Score</th><th>Erreurs</th><th>Contrôleur</th></tr></thead><tbody>
-  ${recs.map(r => { const errs = Object.keys(r.results).filter(k => r.results[k] === "err"); return `<tr class="click" data-g="${esc(r.gid)}"><td class="mono">${esc(fmtDate(r.date))}</td><td><b>${esc(r.clientName)}</b> <span class="mono" style="color:var(--mute)">${esc(r.clientId)}</span></td><td>${esc(S.cfg.types[r.type]?.label || r.type)}</td><td>${esc(r.memberName)}</td><td><span class="score ${scoreClass(r.score, r.total, (r.critical || []).length > 0)}">${pct(r.score, r.total)} %</span>${(r.critical || []).length ? " ⚠️" : ""}${r.imported ? ' <span class="tag">ancien</span>' : ""}</td><td style="max-width:280px">${errs.slice(0, 3).map(k => `<span class="tag">${esc(r.labels[k] || k)}</span>`).join(" ")}${errs.length > 3 ? ` <span class="tag">+${errs.length - 3}</span>` : ""}</td><td style="color:var(--mute)">${esc(r.controllerName)}</td></tr>`; }).join("")}
-  </tbody></table>` : `<div class="empty"><b>Aucun contrôle</b>${S.records.length ? "Aucun résultat pour cette recherche." : "Le premier contrôle fait avec l'outil apparaîtra ici."}</div>`}</div>`;
+  ${recs.length ? groups.map(g => { const [y, mm] = g.k.split("-"); const ga = Math.round(g.items.reduce((s, r) => s + r.score / r.total, 0) / g.items.length * 100);
+      return `<div class="month"><h3>${MONTHS[+mm - 1]} ${y}</h3><span>${g.items.length} contrôle${g.items.length > 1 ? "s" : ""} · moyenne ${ga} %</span><div class="line"></div></div><div class="hlist">${g.items.map(row).join("")}</div>`; }).join("")
+    : `<div class="card empty"><b>Aucun contrôle</b>${S.records.length ? "Aucun résultat pour cette recherche." : "Le premier contrôle soumis apparaîtra ici."}</div>`}`;
   const hq = $("#h_q"); hq.oninput = e => { h.q = e.target.value; const pos = e.target.selectionStart; renderHist(m); const n = $("#h_q"); n.focus(); n.setSelectionRange(pos, pos); };
   $("#h_type").onchange = e => { h.type = e.target.value; renderHist(m); };
   $("#h_member").onchange = e => { h.member = e.target.value; renderHist(m); };
@@ -1214,8 +1351,7 @@ async function renderCfg(m) {
   if (!S.teamUsers) { m.innerHTML = '<div class="loading"><div class="spin d"></div>Chargement de l\'équipe…</div>'; await ensureTeamUsers(); }
   const pts = D.checklists[cfgType];
   const nOld = S.records.filter(r => r.imported).length;
-  m.innerHTML = `<div class="head"><div><h1>Configuration</h1><p>Les changements s'appliquent aux prochains contrôles. L'historique garde les points tels qu'ils étaient.</p></div>
-    <div class="row"><button class="btn ghost" id="resetCfg">Annuler les changements</button><button class="btn" id="saveCfg">Enregistrer</button></div></div>
+  m.innerHTML = `${hero("Configuration", "Checklists, poids, suggestions de coaching, équipe et accès. Les changements s'appliquent aux prochains contrôles.", `<button class="btn ghost sm" id="resetCfg">Annuler les changements</button><button class="btn sm" id="saveCfg" style="background:#fff;color:var(--brand)">Enregistrer</button>`)}
 
   <div class="card pad cfgsec">
     <div class="row" style="justify-content:space-between"><div><h2>Checklists</h2><div class="sub">Pour chaque point : son poids dans la note (Mineur 1, Standard 2, Majeur 3), s'il est critique ⚠️, et la suggestion pour l'aborder avec la personne.</div></div>
