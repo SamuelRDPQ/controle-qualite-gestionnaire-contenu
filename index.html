@@ -779,7 +779,7 @@ function renderForm(m) {
         ${pts.map((p, i) => ptRow(p, i)).join("")}
       </div>
       <div class="card pad" style="margin-top:18px">
-        <div class="field" style="margin:0"><label>Commentaire général (optionnel)</label><textarea class="inp" id="f_comment" placeholder="Résumé de l'évaluation, contexte, points forts…">${esc(f.comment)}</textarea></div>
+        <div class="field" style="margin:0"><label>Résumé du contrôle (optionnel)</label><textarea class="inp" id="f_comment" placeholder="Résumé de l'évaluation, contexte, points forts…">${esc(f.comment)}</textarea></div>
       </div>
     </div>
     <aside class="verdict"><div class="card pad" id="verdictBox"></div></aside>
@@ -856,7 +856,7 @@ function renderVerdict() {
         <div style="color:var(--mute);font-size:13px;margin-top:6px">${sc.errs.length} erreur${sc.errs.length > 1 ? "s" : ""}${sc.rems.length ? ` · ${sc.rems.length} remarque${sc.rems.length > 1 ? "s" : ""}` : ""} sur ${sc.count} points${sc.crit.length ? ` · <b style="color:var(--err)">${sc.crit.length} critique${sc.crit.length > 1 ? "s" : ""}</b>` : ""}</div></div></div>`;
   box.innerHTML = `${head}
     ${sc.errs.length || sc.rems.length || !left ? coachList(coach(fake)) : ""}
-    <button class="btn" id="saveBtn" style="width:100%;padding:14px;margin-top:14px" ${left ? "disabled" : ""}>${left ? `Encore ${left} point${left > 1 ? "s" : ""} à évaluer` : f.editGid ? "Enregistrer les modifications" : "Enregistrer le contrôle"}</button>
+    <button class="btn" id="saveBtn" style="width:100%;padding:14px;margin-top:14px" ${left ? "disabled" : ""}>${left ? `Encore ${left} point${left > 1 ? "s" : ""} à évaluer` : f.editGid ? "Enregistrer les modifications" : "Soumettre le contrôle"}</button>
     ${f.editGid ? `<button class="btn ghost" id="cancelEdit" style="width:100%;margin-top:8px">Annuler</button>` : ""}
     <div style="font-size:12px;color:var(--mute);margin-top:10px">Le contrôle est seulement archivé dans l'historique : aucune tâche assignée, aucune échéance, aucune notification.</div>
     <div id="saveMsg"></div>`;
@@ -873,7 +873,7 @@ async function saveControl() {
   if (sc.pending.length) return fail("Évalue tous les points avant d'enregistrer : " + sc.pending.map(p => p.label).join(", ") + ".");
   const missing = [...sc.errs, ...sc.rems].filter(p => !(f.notes[p.id] || "").trim());
   if (missing.length) return fail("Décris l'erreur pour : " + missing.map(p => p.label).join(", ") + ".");
-  const btn = $("#saveBtn"); btn.disabled = true; btn.innerHTML = '<div class="spin"></div>Enregistrement dans Asana…';
+  const btn = $("#saveBtn"); btn.disabled = true; btn.innerHTML = '<div class="spin"></div>Envoi du contrôle…';
   const pts = checklist(f.type);
   const labels = {}, results = {}, notes = {};
   pts.forEach(p => { labels[p.id] = p.label; results[p.id] = f.results[p.id] || "ok"; if (results[p.id] === "err" || results[p.id] === "rem") notes[p.id] = f.notes[p.id].trim(); });
@@ -912,7 +912,7 @@ function showSaved(rec, edited) {
   const b = band(pct(rec.score, rec.total), rec.critical.length > 0);
   $("#main").innerHTML = `<div class="card pad" style="max-width:640px;margin:40px auto;padding:40px">
     <div style="display:flex;justify-content:center">${ring(rec.score, rec.total, 120)}</div>
-    <h1 style="font-size:30px;margin-top:14px;text-align:center">${edited ? "Contrôle modifié" : "Contrôle enregistré"}</h1>
+    <h1 style="font-size:30px;margin-top:14px;text-align:center">${edited ? "Contrôle modifié" : "Contrôle soumis"}</h1>
     <p style="color:var(--mute);text-align:center">${esc(rec.clientName)} · ${esc(rec.memberName)} · <span class="score ${b.cls}">${pct(rec.score, rec.total)} % · ${esc(b.label)}</span></p>
     ${coachList(coach(rec))}
     <div class="row" style="justify-content:center;margin-top:20px">
