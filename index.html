@@ -91,6 +91,8 @@ main{padding:30px 38px 80px;min-width:0}
 .pt:first-child{border-top:0}
 .pt.err{background:linear-gradient(90deg,var(--errbg),transparent 70%)}
 .pt.na{opacity:.6}
+.pt.todo{box-shadow:inset 3px 0 0 var(--warn)}
+.pt.flash{background:var(--warnbg)}
 .pt .n{font-family:"IBM Plex Mono";font-size:12px;color:var(--mute);padding-top:7px}
 .pt .lab{font-weight:600;padding-top:5px}
 .pt .lab .crit{font-size:11px;font-weight:600;color:var(--warn);background:var(--warnbg);padding:1px 7px;border-radius:99px;margin-left:6px;vertical-align:1px}
@@ -632,12 +634,13 @@ function scoreOf(type, results) {
 }
 function computeScore(form) {
   const pts = checklist(form.type);
-  const res = {}; pts.forEach(p => res[p.id] = form.results[p.id] || "ok");
+  const res = {}; pts.forEach(p => { if (form.results[p.id]) res[p.id] = form.results[p.id]; });
+  const pending = pts.filter(p => !form.results[p.id]);
   const sc = scoreOf(form.type, res);
   const errs = pts.filter(p => res[p.id] === "err");
   const crit = errs.filter(p => p.critical);
   const p = pct(sc.earned, sc.possible);
-  return { score: sc.earned, total: sc.possible, pct: p, band: band(p, crit.length > 0), errs, crit, count: pts.length };
+  return { score: sc.earned, total: sc.possible, pct: p, band: band(p, crit.length > 0), errs, crit, count: pts.length, pending, done: pts.length - pending.length };
 }
 /* ---------------- auth ---------------- */
 async function login(token, remember) {
@@ -741,7 +744,6 @@ function render() {
    ===================================================================== */
 function newForm(type, base) {
   const f = { type, clientId: "", clientName: "", link: "", memberId: "", date: todayStr(), results: {}, notes: {}, comment: "", editGid: null };
-  checklist(type).forEach(p => f.results[p.id] = "ok");
   return Object.assign(f, base || {});
 }
 function renderForm(m) {
@@ -750,7 +752,7 @@ function renderForm(m) {
   const members = S.cfg.members.filter(x => x.active !== false || x.id === f.memberId);
   m.innerHTML = `
   <div class="head">
-    <div><h1>${f.editGid ? "Modifier le contrôle" : "Nouveau contrôle"}</h1><p>Tout est conforme par défaut : clique seulement sur ce qui est en erreur.</p></div>
+    <div><h1>${f.editGid ? "Modifier le contrôle" : "Nouveau contrôle"}</h1><p>Évalue chaque point : Conforme, Erreur ou N/A. La note apparaît quand tout est évalué.</p></div>
     <div class="typesw">${Object.keys(S.cfg.types).map(k => `<button data-type="${k}" class="${f.type === k ? "on" : ""}">${esc(S.cfg.types[k].label)} <span class="mono" style="opacity:.6">${checklist(k).length} pts</span></button>`).join("")}</div>
   </div>
   <div class="formgrid">
@@ -787,7 +789,7 @@ function renderForm(m) {
   renderDup(); renderVerdict();
 }
 function ptRow(p, i) {
-  const f = S.form; const st = f.results[p.id] || "ok";
+  const f = S.form; const st = f.results[p.id] || "todo";
   return `<div class="pt ${st}" data-pt="${esc(p.id)}">
     <div class="n">${String(i + 1).padStart(2, "0")}</div>
     <div><div class="lab">${esc(p.label)}${p.critical ? '<span class="crit">⚠️ critique</span>' : ""}<span class="wt w${p.w || 2}" title="Poids dans la note">${WEIGHTS[p.w || 2]}</span></div>
@@ -823,9 +825,9 @@ function renderDup() {
   const prev = S.records.filter(r => r.gid !== f.editGid && ((cid && r.clientId === cid) || (!cid && nm && (r.clientName || "").toLowerCase() === nm)));
   box.innerHTML = prev.length ? `<div class="dup">Déjà contrôlé ${prev.length} fois : ${prev.slice(0, 3).map(r => `${esc(fmtDate(r.date))} (${r.score}/${r.total}, ${esc(r.memberName)})`).join(" · ")}</div>` : "";
 }
-function ring(score, total, size = 92) {
+function ring(score, total, size = 92, forceCol) {
   const p = total ? score / total : 0, r = size / 2 - 7, c = 2 * Math.PI * r;
-  const col = p >= .85 ? "var(--ok)" : p >= .7 ? "var(--warn)" : "var(--err)";
+  const col = forceCol || p >= .85 ? "var(--ok)" : p >= .7 ? "var(--warn)" : "var(--err)";
   return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true"><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="var(--nabg)" stroke-width="9"/><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="${col}" stroke-width="9" stroke-linecap="round" stroke-dasharray="${c * p} ${c}" transform="rotate(-90 ${size / 2} ${size / 2})"/><text x="50%" y="54%" text-anchor="middle" font-family="IBM Plex Mono" font-weight="600" font-size="15" fill="var(--ink)">${Math.round(p * 100)}%</text></svg>`;
 }
 function coachList(items) {
@@ -836,16 +838,22 @@ function renderVerdict() {
   const f = S.form; const box = $("#verdictBox"); if (!box) return;
   const sc = computeScore(f);
   const fake = { type: f.type, results: f.results, labels: {} };
-  box.innerHTML = `
-    <div class="ring">${ring(sc.score, sc.total)}<div><div class="big">${sc.pct}<small> %</small></div>
-      <span class="score ${sc.band.cls}">${esc(sc.band.label)}</span>
-      <div style="color:var(--mute);font-size:13px;margin-top:6px">${sc.errs.length} erreur${sc.errs.length > 1 ? "s" : ""} sur ${sc.count} points${sc.crit.length ? ` · <b style="color:var(--err)">${sc.crit.length} critique${sc.crit.length > 1 ? "s" : ""}</b>` : ""}</div></div></div>
-    ${coachList(coach(fake))}
-    <button class="btn" id="saveBtn" style="width:100%;padding:14px;margin-top:14px">${f.editGid ? "Enregistrer les modifications" : "Enregistrer le contrôle"}</button>
+  const left = sc.pending.length;
+  const head = left
+    ? `<div class="ring">${ring(sc.done, sc.count, 92, "var(--accent)").replace(/>\d+%</, `>${sc.done}/${sc.count}<`)}<div><div class="big" style="font-size:30px">${left}<small> point${left > 1 ? "s" : ""} à évaluer</small></div>
+        <div style="color:var(--mute);font-size:13px;margin-top:6px">La note s'affiche quand tous les points sont évalués.${sc.errs.length ? ` · ${sc.errs.length} erreur${sc.errs.length > 1 ? "s" : ""} pour l'instant` : ""}</div>
+        <button class="btn ghost sm" id="goNext" style="margin-top:8px">Aller au prochain point ↓</button></div></div>`
+    : `<div class="ring">${ring(sc.score, sc.total)}<div><div class="big">${sc.pct}<small> %</small></div>
+        <span class="score ${sc.band.cls}">${esc(sc.band.label)}</span>
+        <div style="color:var(--mute);font-size:13px;margin-top:6px">${sc.errs.length} erreur${sc.errs.length > 1 ? "s" : ""} sur ${sc.count} points${sc.crit.length ? ` · <b style="color:var(--err)">${sc.crit.length} critique${sc.crit.length > 1 ? "s" : ""}</b>` : ""}</div></div></div>`;
+  box.innerHTML = `${head}
+    ${sc.errs.length || !left ? coachList(coach(fake)) : ""}
+    <button class="btn" id="saveBtn" style="width:100%;padding:14px;margin-top:14px" ${left ? "disabled" : ""}>${left ? `Encore ${left} point${left > 1 ? "s" : ""} à évaluer` : f.editGid ? "Enregistrer les modifications" : "Enregistrer le contrôle"}</button>
     ${f.editGid ? `<button class="btn ghost" id="cancelEdit" style="width:100%;margin-top:8px">Annuler</button>` : ""}
     <div style="font-size:12px;color:var(--mute);margin-top:10px">Le contrôle est seulement archivé dans l'historique : aucune tâche assignée, aucune échéance, aucune notification.</div>
     <div id="saveMsg"></div>`;
   $("#saveBtn").onclick = saveControl;
+  const gn = $("#goNext"); if (gn) gn.onclick = () => { const el = document.querySelector("#ptsBox .pt.todo"); if (el) { el.scrollIntoView({ behavior: "smooth", block: "center" }); el.classList.add("flash"); setTimeout(() => el.classList.remove("flash"), 900); } };
   const ce = $("#cancelEdit"); if (ce) ce.onclick = () => { S.form = newForm("opti"); go("hist"); };
 }
 async function saveControl() {
@@ -854,6 +862,7 @@ async function saveControl() {
   const fail = (t) => { msg.innerHTML = `<div class="msg e">${esc(t)}</div>`; };
   if (!f.clientName.trim()) return fail("Indique le nom du client.");
   if (!mem) return fail("Indique qui a réalisé l'optimisation.");
+  if (sc.pending.length) return fail("Évalue tous les points avant d'enregistrer : " + sc.pending.map(p => p.label).join(", ") + ".");
   const missing = sc.errs.filter(p => !(f.notes[p.id] || "").trim());
   if (missing.length) return fail("Décris l'erreur pour : " + missing.map(p => p.label).join(", ") + ".");
   const btn = $("#saveBtn"); btn.disabled = true; btn.innerHTML = '<div class="spin"></div>Enregistrement dans Asana…';
